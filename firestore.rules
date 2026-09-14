@@ -7,25 +7,24 @@ service cloud.firestore {
     function admin() { return member() && get(memberPath()).data.role in ['owner','admin']; }
     function owner() { return member() && get(memberPath()).data.role == 'owner'; }
     function count(n,max) { return n is int && n >= 0 && n <= max; }
-    function station(s,max) { return s.keys().hasAll(['hp','assigned']) && s.keys().hasOnly(['hp','assigned']) && count(s.hp,max) && count(s.assigned,48); }
-    function gun(g) { return g.keys().hasAll(['condition','loaded','assigned']) && g.keys().hasOnly(['condition','loaded','assigned']) && g.condition in ['operational','disabled','destroyed'] && (g.loaded == null || (g.loaded is string && g.loaded.size() <= 80)) && count(g.assigned,48); }
+    function station(s,max) { return count(s.hp,max) && count(s.assigned,48); }
+    function gun(g) { return g.condition in ['operational','disabled','destroyed'] && (g.loaded == null || (g.loaded is string && g.loaded.size() <= 80)) && count(g.assigned,48); }
     function valid(d,id) {
       let c = d.config;
       let g = d.game;
       let s = g.stations;
-      return d.keys().hasAll(['config','game','revision']) && d.keys().hasOnly(['config','game','revision'])
+      return d.keys().hasOnly(['config','game','revision'])
         && c.id == id && c.name is string && c.name.size() > 0 && c.name.size() <= 60
         && c.type == 'Large Sloop' && c.maxHull == 20 && c.minCrew == 5 && c.maxCrew == 48
         && c.mounts is list && c.mounts.size() == 4
         && c.stationMax == {'Bridge':5,'Rudder':3,'Mast':5,'Gun Deck':8,'Powder Dock':3,'Anchors':3,'Infirmary':3,'Larder':3,'Hold':5}
-        && g.keys().hasAll(['hull','crew','crewLevel','sails','sinking','stations','guns','inventory','officers'])
         && g.keys().hasOnly(['hull','crew','crewLevel','sails','sinking','stations','guns','inventory','officers'])
         && count(g.hull,c.maxHull) && count(g.crew,c.maxCrew) && count(g.crewLevel,100)
         && g.sails in [0,1,2] && (g.sinking == null || count(g.sinking,12))
-        && s.keys().hasAll(c.stationMax.keys()) && s.keys().hasOnly(c.stationMax.keys())
+        && s.keys().hasOnly(c.stationMax.keys())
         && station(s.Bridge,5) && station(s.Rudder,3) && station(s.Mast,5) && station(s['Gun Deck'],8)
         && station(s['Powder Dock'],3) && station(s.Anchors,3) && station(s.Infirmary,3) && station(s.Larder,3) && station(s.Hold,5)
-        && g.guns is list && g.guns.size() == 4 && gun(g.guns[0]) && gun(g.guns[1]) && gun(g.guns[2]) && gun(g.guns[3])
+        && g.guns is list && g.guns.size() == 4
         && g.inventory is list && g.inventory.size() <= 500 && g.officers is map
         && d.revision is int && d.revision >= 0;
     }

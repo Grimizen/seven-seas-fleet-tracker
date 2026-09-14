@@ -37,7 +37,10 @@ export function transferCargo(from,to,id,amount,newId) {
   if(match)match.quantity+=amount;else b.game.inventory.push({...item,id:newId,quantity:amount});
   a.revision++;b.revision++;return [a,b];
 }
-const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// Firestore may return map keys in a different order after a round trip.
+const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'
+  ?Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])])):value;
+const equal=(a,b)=>JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
 export function changes(before,after,path=[]) {
   if(equal(before,after))return [];
   if(before && after && typeof before==='object' && typeof after==='object' && !Array.isArray(before) && !Array.isArray(after)

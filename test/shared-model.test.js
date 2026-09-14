@@ -30,3 +30,9 @@ test('undo preserves unrelated later changes and rejects conflicting changes',()
   const otherShot=changeShip(shot,{type:'fire',id:'gun-2'});
   assert.throws(()=>undoChanges(otherShot.game,patch),/another change/);
 });
+test('undo accepts Firestore map key reordering within arrays',()=>{
+  const before={guns:[{condition:'operational',loaded:'Lead shot',assigned:0}]};
+  const after={guns:[{condition:'operational',loaded:null,assigned:0}]};
+  const roundTrip={guns:[{assigned:0,condition:'operational',loaded:null}]};
+  assert.deepEqual(undoChanges(roundTrip,changes(before,after)),before);
+});
