@@ -1,8 +1,8 @@
 import {readFile} from 'node:fs/promises';
 import {test,before,after} from 'node:test';
 import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
-import {doc,setDoc,getDoc,updateDoc,runTransaction} from 'firebase/firestore';
-import {defaultSharedShip,changeShip} from '../dist/shared-model.js';
+import {doc,setDoc,getDoc,updateDoc,runTransaction,serverTimestamp} from 'firebase/firestore';
+import {defaultSharedShip,changeShip,transferCargo} from '../dist/shared-model.js';
 let env;
 const base='campaigns/seven-seas';
 before(async()=>{
@@ -53,3 +53,14 @@ test('owner can revoke membership; GM cannot promote an owner or edit another me
   await assertSucceeds(updateDoc(doc(dbFor('owner'),base,'members','invited'),{role:'revoked'}));
   await assertFails(getDoc(doc(dbFor('invited'),base,'ships','sea-wren')));
 });
+test('cargo transfer and authenticated activity commit atomically',async()=>{
+  const db=dbFor('player'),a=doc(db,base,'ships','sea-wren'),b=doc(db,base,'ships','gm-ship');
+  const initialA=(await getDoc(a)).data().game.inventory[0].quantity,initialB=(await getDoc(b)).data().game.inventory[0].quantity;
+  await assertSucceeds(runTransaction(db,async tx=>{
+    const oldA=await tx.get(a),oldB=await tx.get(b),[nextA,nextB]=transferCargo(oldA.data(),oldB.data(),'lead',3,'test-transfer');
+    tx.set(a,nextA);tx.set(b,nextB);tx.set(doc(db,base,'activity','transfer-test'),{actor:'player',text:'Moved three rounds',at:serverTimestamp()});
+  }));
+  if((await getDoc(a)).data().game.inventory[0].quantity!==initialA-3||(await getDoc(b)).data().game.inventory[0].quantity!==initialB+3)throw Error('Transfer was not conserved.');
+  await assertFails(setDoc(doc(db,base,'activity','forged-actor'),{actor:'owner',text:'Forged actor',at:serverTimestamp()}));
+});
+
