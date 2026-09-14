@@ -1,0 +1,1 @@
+{"name":"seven-seas-fleet-tracker","private":true,"type":"module","scripts":{"test":"node --test","start":"python -m http.server 4173 --directory dist"}}

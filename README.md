@@ -16,4 +16,3 @@ Use Firebase Authentication (Google sign-in plus editable display name) and Fire
 See GM-ASSUMPTIONS.md for campaign defaults, unresolved rules and temporary scope decisions. The build does not implement combat simulation, fire tiles, alternate ship classes, granular ammunition compatibility or officer ability levels yet.
 
 Google Fonts are optional presentation dependencies; system/Georgia fallbacks work without them. No build system is required. Publish the contents of `dist/` to GitHub Pages when deployment is authorised and the repository is chosen. Keep Firebase secrets/service-account files out of public assets.
-

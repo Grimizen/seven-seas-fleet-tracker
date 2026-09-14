@@ -1,0 +1,19 @@
+export const stationDefaults = {Bridge:5,Rudder:3,Mast:5,'Gun Deck':8,'Powder Dock':3,Anchors:3,Infirmary:3,Larder:3,Hold:5};
+export const services = {Bridge:'Command and helm',Rudder:'Steering',Mast:'Sail propulsion','Gun Deck':'Gunnery','Powder Dock':'Ammunition supply',Anchors:'Anchoring',Infirmary:'Medical care',Larder:'Food storage service',Hold:'Cargo storage service'};
+export function newShip(id='sea-wren',name='Sea Wren'){return {id,name,type:'Large Sloop',hull:20,maxHull:20,crew:16,crewLevel:1,sails:1,sinking:null,stations:Object.fromEntries(Object.entries(stationDefaults).map(([k,max])=>[k,{hp:max,max,assigned:0}])),guns:Array.from({length:4},(_,i)=>({id:`gun-${i+1}`,name:`${i<2?'Port':'Starboard'} ${i%2+1}`,side:i<2?'Port':'Starboard',condition:'operational',loaded:'Lead shot',assigned:0})),inventory:[{id:'lead',name:'Lead shot',category:'Ammunition',quantity:26}],officers:{Captain:'',Gunner:'','First Mate':'',Helmsman:'',Bosun:'',Surgeon:'',Chaplain:'',Carpenter:'',Navigator:'',Lookout:'',Quartermaster:'',Cook:''}};}
+export function initialState(){return {version:1,selected:'sea-wren',ships:[newShip()],log:[]};}
+export function assigned(ship){return Object.values(ship.stations).reduce((n,s)=>n+s.assigned,0)+ship.guns.reduce((n,g)=>n+g.assigned,0);}
+export function apply(ship,action){const s=structuredClone(ship);const g=s.guns.find(g=>g.id===action.id);const n=Number(action.amount);switch(action.type){
+case 'sails': if(![0,1,2].includes(n))throw Error('Choose a sail state.');s.sails=n;break;
+case 'hp': {if(!Number.isInteger(n))throw Error('Enter a whole HP amount.');if(action.id==='Hull'){s.hull=Math.max(0,Math.min(s.maxHull,s.hull+n));}else {const st=s.stations[action.id];if(!st)throw Error('Unknown section.');st.hp=Math.max(0,Math.min(st.max,st.hp+n));}break;}
+case 'fire': if(!g||g.condition!=='operational'||!g.loaded)throw Error('This cannon is not ready.');if(s.stations['Gun Deck'].hp===0)throw Error('The gun deck is destroyed.');g.loaded=null;break;
+case 'reload': {if(!g||g.condition!=='operational'||g.loaded)throw Error('This cannon cannot reload.');if(!s.stations['Powder Dock'].hp||!s.stations['Gun Deck'].hp)throw Error('Restore the gun deck and powder dock before reloading.');const ammo=s.inventory.find(i=>i.id===action.ammo);if(!ammo||ammo.category!=='Ammunition'||ammo.quantity<1)throw Error('No ammunition available.');ammo.quantity--;g.loaded=ammo.name;break;}
+case 'gun-condition':if(!g||!['operational','disabled','destroyed'].includes(action.value))throw Error('Invalid cannon condition.');g.condition=action.value;break;
+case 'inventory':{const item=s.inventory.find(i=>i.id===action.id);if(!item||!Number.isInteger(n)||item.quantity+n<0)throw Error('Quantity must be a nonnegative whole number.');item.quantity+=n;break;}
+case 'remove-item':if(!s.inventory.some(i=>i.id===action.id))throw Error('Item no longer exists.');s.inventory=s.inventory.filter(i=>i.id!==action.id);break;
+case 'add-item':if(!action.name?.trim()||!Number.isInteger(n)||n<1)throw Error('Enter an item and positive whole quantity.');s.inventory.push({id:action.id,name:action.name.trim().slice(0,80),quantity:n,category:action.category});break;
+case 'crew':if(!Number.isInteger(n)||n<0||n>48||n<assigned(s))throw Error('Crew must cover assignments and stay within 0–48.');s.crew=n;break;
+case 'assign':if(!Number.isInteger(n)||n<0)throw Error('Enter a nonnegative whole crew count.');if(g)g.assigned=n;else if(s.stations[action.id])s.stations[action.id].assigned=n;else throw Error('Unknown station.');if(assigned(s)>s.crew)throw Error('Not enough unassigned crew.');break;
+case 'officer':if(!(action.id in s.officers))throw Error('Unknown role.');s.officers[action.id]=action.value.slice(0,80);break;
+case 'sinking':if(!Number.isInteger(n)||n<0||n>12)throw Error('Enter 0–12 turns.');s.sinking=n;break;
+default:throw Error('Unknown action.');}return s;}
