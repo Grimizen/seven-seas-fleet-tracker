@@ -43,4 +43,4 @@
 - Owner and GM manage templates, permissions and rule settings.
 - Account/display identity is separate from officer or character assignments.
 - Mobile controls below the diagram; laptop controls in a right panel.
-- Shared Firebase sign-in and persistence are the next phase. This version is explicitly a device-local playtest, without authentication or security roles.
+- Firebase sign-in and shared storage are implemented. Production access requires publishing firestore.rules and manually bootstrapping the owner UID; see FIREBASE-SETUP.md. Existing local playtest data is retained separately.
