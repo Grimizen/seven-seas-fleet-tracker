@@ -54,7 +54,6 @@ service cloud.firestore {
       allow read: if member();
       allow create: if admin() && valid(request.resource.data,id) && request.resource.data.revision == 0;
       allow update: if member() && valid(request.resource.data,id)
-        && request.resource.data.revision == resource.data.revision + 1
         && (admin() || request.resource.data.config == resource.data.config);
       allow delete: if false;
     }
@@ -67,3 +66,4 @@ service cloud.firestore {
     }
   }
 }
+
