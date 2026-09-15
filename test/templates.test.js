@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {defaultSharedShip,unpackShip,changeShip} from '../dist/shared-model.js';
-import {templates,reclassify} from '../dist/templates.js';
+import {templates,reclassify,createFromTemplate} from '../dist/templates.js';
 
 test('class change preserves damage, destroyed sections, cargo and crew without mutating input',()=>{
   const old=defaultSharedShip();old.game.hull=17;old.game.stations.Mast.hp=0;
@@ -22,4 +22,14 @@ test('smaller classes reject capacity conflicts instead of deleting crew or equi
 test('legacy vessels remain active; archived flag survives decoding',()=>{
   const doc=defaultSharedShip();assert.equal(unpackShip(doc).archived,false);
   doc.config.archived=true;assert.equal(unpackShip(doc).archived,true);
+});
+
+test('new vessels use chosen class immediately and fit small custom capacities',()=>{
+  const t={...templates[0],type:'Tiny test ship',maxCrew:3,maxGuns:1};
+  const ship=createFromTemplate('tiny','Tiny',t);
+  assert.equal(ship.type,t.type);assert.equal(ship.hull,10);assert.equal(ship.crew,3);
+  assert.equal(ship.guns.length,1);assert.equal(ship.inventory[0].quantity,29);
+  assert.equal(ship.stations.Bridge.hp,2);
+  const large=createFromTemplate('large','Large',templates[2]);
+  assert.equal(large.hull,20);assert.equal(large.guns.length,4);assert.equal(large.crew,16);
 });

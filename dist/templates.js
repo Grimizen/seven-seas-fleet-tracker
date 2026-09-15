@@ -1,4 +1,4 @@
-import {stationDefaults} from './model.js';
+import {newShip,stationDefaults} from './model.js';
 
 export const templates = ['Small','Medium','Large'].map((size,i)=>({
   id:`sloop-${size.toLowerCase()}`,type:`${size} Sloop`,maxHull:[10,15,20][i],
@@ -28,4 +28,16 @@ export function reclassify(doc,template){
   for(const [key,value] of Object.entries(next.game.stations))value.hp=preserveDamage(value.hp,old.stationMax[key],template.stationMax[key]);
   next.revision++;
   return next;
+}
+
+export function createFromTemplate(id,name,template){
+  validateTemplate(template);
+  const ship=newShip(id,name);
+  ship.type=template.type;ship.maxHull=template.maxHull;ship.hull=template.maxHull;
+  ship.minCrew=template.minCrew;ship.maxCrew=template.maxCrew;ship.maxGuns=template.maxGuns;
+  ship.crew=Math.min(16,template.maxCrew);
+  ship.guns=ship.guns.slice(0,template.maxGuns);
+  ship.inventory[0].quantity=30-ship.guns.length;
+  for(const [key,value] of Object.entries(ship.stations))value.hp=value.max=template.stationMax[key];
+  return ship;
 }

@@ -66,7 +66,7 @@ if(b.id==='archive-ship'){const current=ship();if(confirm(`Remove ${current.name
 if(b.dataset.restore)await perform(()=>cloud.archiveShip(b.dataset.restore,false),'Vessel restored.',false);
 if(b.id==='load-templates')await perform(async()=>{customTemplates=await cloud.loadTemplates();},'Group templates loaded.',false);
 if(b.id==='save-template'){try{const t=readTemplate();await perform(async()=>{await cloud.saveTemplate(t);customTemplates=await cloud.loadTemplates();},'Group template saved.',false);}catch(e){toast(e.message);}}
-if(b.id==='new-ship'){const name=$('#new-name').value.trim();if(!name)return toast('Enter a vessel name.');await perform(async()=>{state.selected=await cloud.addShip(name);save();},'Vessel added.',false);}
+if(b.id==='new-ship'){const name=$('#new-name').value.trim();if(!name)return toast('Enter a vessel name.');const template=[...templates,...customTemplates][Number($('#new-class').value)];await perform(async()=>{state.selected=await cloud.addShip(name,undefined,template);save();},'Vessel added.',false);}
 if(b.id==='rename-ship'){const name=$('#rename-name').value.trim();if(!name)return toast('Enter a vessel name.');await perform(()=>cloud.renameShip(ship().id,name),'Vessel renamed.',false);}
 if(b.id==='invite-member'){const input=$('#invite-email');if(!input.value.trim()||!input.reportValidity())return;const email=input.value.trim(),access=$('#invite-role').value;await perform(()=>cloud.invite(email,access),'Account invited. They can now sign in.',false);}
 if(b.id==='export')exportData({...state,archivedShips,templates:customTemplates},'seven-seas-shared-fleet.json');

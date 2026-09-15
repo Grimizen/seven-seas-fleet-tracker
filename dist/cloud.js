@@ -4,7 +4,7 @@ import {getFirestore,doc,collection,onSnapshot,runTransaction,setDoc,getDoc,quer
 import {firebaseConfig} from './firebase-config.js';
 import {changeShip,transferCargo,changes,undoChanges,defaultSharedShip,packShip,unpackShip} from './shared-model.js';
 import {newShip} from './model.js';
-import {reclassify,validateTemplate} from './templates.js';
+import {reclassify,validateTemplate,createFromTemplate,templates} from './templates.js';
 
 export function createCloud(callbacks){
   const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
@@ -54,7 +54,7 @@ export function createCloud(callbacks){
     change:(id,action,text,expected)=>transact([id],([value])=>[changeShip(value,action,expected)],text),
     transfer:(from,to,item,amount,text)=>{if(from===to)throw Error('Choose a different vessel.');const newId=crypto.randomUUID();return transact([from,to],([a,b])=>transferCargo(a,b,item,amount,newId),text);},
     undo:receipt=>{if(receipt.actor!==user?.uid)throw Error('You can only undo your own actions.');return transact(receipt.ids,docs=>docs.map((d,i)=>({...d,game:undoChanges(d.game,receipt.patches[i]),revision:d.revision+1})),`Undid: ${receipt.text}`);},
-    addShip:async(name,id=crypto.randomUUID())=>{requireAdmin();const value=id==='sea-wren'?defaultSharedShip():packShip(newShip(id,name));value.config.name=name;
+    addShip:async(name,id=crypto.randomUUID(),template=templates[2])=>{requireAdmin();const value=id==='sea-wren'?defaultSharedShip():packShip(createFromTemplate(id,name,template));value.config.name=name;
       await runTransaction(db,async tx=>{const ref=shipRef(id),existing=await tx.get(ref);if(existing.exists())throw Error('This vessel already exists.');tx.set(ref,value);activity(tx,crypto.randomUUID(),`Added vessel ${name}`);});return id;},
     renameShip:async(id,name)=>{requireAdmin();await runTransaction(db,async tx=>{const ref=shipRef(id),snapshot=await tx.get(ref);if(!snapshot.exists())throw Error('Vessel not found.');const value=snapshot.data();tx.update(ref,{config:{...value.config,name},revision:value.revision+1});activity(tx,crypto.randomUUID(),`Renamed vessel to ${name}`);});},
     configureShip:async(id,template)=>{requireAdmin();await runTransaction(db,async tx=>{const ref=shipRef(id),snapshot=await tx.get(ref);if(!snapshot.exists())throw Error('Vessel not found.');tx.set(ref,reclassify(snapshot.data(),template));activity(tx,crypto.randomUUID(),`Changed vessel class to ${template.type}`);});},
