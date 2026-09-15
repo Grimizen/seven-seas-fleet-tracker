@@ -25,7 +25,7 @@ test('legacy vessels remain active; archived flag survives decoding',()=>{
 });
 
 test('new vessels use chosen class immediately and fit small custom capacities',()=>{
-  const t={...templates[0],type:'Tiny test ship',maxCrew:3,maxGuns:1};
+  const t={...templates[0],type:'Tiny test ship',maxCrew:3,maxGuns:1,armament:{layout:{Port:1,Starboard:0,Bow:0,Stern:0},broadsideTypes:['Long Gun'],chaseTypes:['Long Gun']}};
   const ship=createFromTemplate('tiny','Tiny',t);
   assert.equal(ship.type,t.type);assert.equal(ship.hull,10);assert.equal(ship.crew,3);
   assert.equal(ship.guns.length,1);assert.equal(ship.inventory[0].quantity,29);

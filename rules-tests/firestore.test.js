@@ -1,8 +1,9 @@
+import {refit} from '../dist/weapons.js';
 import {readFile} from 'node:fs/promises';
 import {test,before,after} from 'node:test';
 import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
 import {doc,setDoc,getDoc,updateDoc,runTransaction,serverTimestamp} from 'firebase/firestore';
-import {defaultSharedShip,changeShip,transferCargo} from '../dist/shared-model.js';
+import {defaultSharedShip,changeShip,transferCargo,packShip,unpackShip} from '../dist/shared-model.js';
 import {templates,reclassify} from '../dist/templates.js';
 let env;
 const base='campaigns/seven-seas';
@@ -81,4 +82,27 @@ test('cargo transfer and authenticated activity commit atomically',async()=>{
   }));
   if((await getDoc(a)).data().game.inventory[0].quantity!==initialA-3||(await getDoc(b)).data().game.inventory[0].quantity!==initialB+3)throw Error('Transfer was not conserved.');
   await assertFails(setDoc(doc(db,base,'activity','forged-actor'),{actor:'owner',text:'Forged actor',at:serverTimestamp()}));
+});
+
+test('GM may install and remove cannons; players may fire but cannot alter the installed type',async()=>{
+  const gm=dbFor('gm'),ref=doc(gm,base,'ships','loadout-test');
+  const original=defaultSharedShip();original.config.id='loadout-test';
+  const initial=packShip(refit(unpackShip(original),'bow-1','swivel-3'));
+  await assertSucceeds(setDoc(ref,initial));
+  const playerRef=doc(dbFor('player'),base,'ships','loadout-test');
+  const gunId=initial.config.mounts.find(g=>g.slotId==='bow-1').id;
+  const loaded=changeShip(initial,{type:'reload',id:gunId,ammo:'lead'});
+  await assertSucceeds(setDoc(playerRef,loaded));
+  await assertSucceeds(setDoc(playerRef,changeShip(loaded,{type:'fire',id:gunId})));
+  const replaced=packShip(refit(unpackShip(loaded),'bow-1','long-9'));
+  await assertFails(setDoc(playerRef,replaced));
+  await assertSucceeds(setDoc(ref,replaced));
+  const removed=packShip(refit(unpackShip(replaced),'bow-1',''));
+  await assertSucceeds(setDoc(ref,removed));
+});
+test('GM may remove a saved template entry; players cannot read or change template settings',async()=>{
+  const ref=doc(dbFor('gm'),base,'settings','templates');
+  await assertSucceeds(setDoc(ref,{items:[]}));
+  await assertFails(getDoc(doc(dbFor('player'),base,'settings','templates')));
+  await assertFails(setDoc(doc(dbFor('player'),base,'settings','templates'),{items:[]}));
 });

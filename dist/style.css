@@ -22,3 +22,33 @@ main.cargo-mode{grid-template-columns:minmax(0,1fr)}
 @media(max-width:800px){.cargo-toolbar{grid-template-columns:1fr 1fr}.cargo-search{grid-column:1/-1}.cargo-entry{grid-template-columns:minmax(0,1fr) auto;gap:12px}.cargo-adjust{grid-column:1}.cargo-remove{grid-column:2;max-width:130px}.cargo-add-form{grid-template-columns:1fr 1fr}.cargo-add-form label:first-child{grid-column:1/-1}.cargo-mode .panel-heading{align-items:flex-start;gap:12px}.cargo-mode .panel-heading button{font-size:14px}.cargo-mode nav button{flex:1}.cargo-quantity{min-width:65px}.cargo-adjust button{padding:10px}.cargo-mode .eyebrow{overflow-wrap:anywhere}}
 @media(max-width:380px){.cargo-toolbar{grid-template-columns:1fr}.cargo-adjust{gap:3px}.cargo-adjust button{padding:8px}.cargo-remove{padding:8px}}
 [hidden]{display:none!important}.account-gate{max-width:650px;margin:70px auto;padding:32px;border:1px solid var(--line);border-radius:12px;background:#182b35}.account-gate h1{font-size:48px}.account-gate input{width:100%}.account-gate details{margin-top:30px}.account-gate p{overflow-wrap:anywhere}.session{flex-wrap:wrap}#tabs button{white-space:normal}main[inert]{opacity:.8}@media(max-width:800px){.account-gate{margin:24px 5%;padding:24px}.account-gate h1{font-size:40px}}
+
+/* Selection is blue; HP damage stays amber. */
+.section-list .active{border-color:#80c9ff;background:#254b64;box-shadow:inset 3px 0 #80c9ff}
+svg .station:hover rect,svg .station:focus rect{stroke:#80c9ff}
+.vessel-map{display:grid;grid-template-columns:62px minmax(0,1fr) 62px;gap:8px;padding:8px}
+.map-hull{grid-column:2;grid-row:2;align-self:center;min-width:0}
+.battery{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.battery-port{grid-column:1;grid-row:2;flex-direction:column}.battery-starboard{grid-column:3;grid-row:2;flex-direction:column}
+.battery-bow{grid-column:1/-1;grid-row:1}.battery-stern{grid-column:1/-1;grid-row:3}
+.battery-label{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.5px}
+.gun-token{display:grid;gap:2px;justify-items:center;min-width:52px;padding:7px 4px;font-size:13px;border-color:#627b89}
+.gun-token small{font-size:10px}.gun-token.ready{border-color:var(--green);color:var(--green)}.gun-token.vacant{border-style:dashed;color:var(--muted)}.gun-token.disabled-gun{color:#ed8d85;border-color:#ed8d85}
+.gun-badge{padding:6px 10px;background:#294551;border-radius:6px;font-size:13px;white-space:nowrap}
+.battery-heading{margin:24px 0 12px}.gun-cards{display:grid;gap:10px}.gun-cards .card{min-width:0}.gun-cards select{width:100%}.gun-cards details>button{margin:12px 0}.gun-cards .actions select{min-width:130px}
+.mount-fields{min-width:0;border:1px solid var(--line);border-radius:8px;padding:14px}.mount-fields fieldset{border:0;margin-top:16px;padding:0;min-width:0}
+.slot-counts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.family-options{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}.family-options label{display:flex;align-items:center;min-height:44px}.family-options input{width:18px;height:18px}
+.template-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line)}.template-row>div{flex:1;min-width:140px;overflow-wrap:anywhere}
+@media(min-width:1100px){.cargo-mode .slot-counts{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:450px){.vessel-map{grid-template-columns:48px minmax(0,1fr) 48px;gap:3px;padding:3px}.gun-token{min-width:44px;font-size:11px;padding:5px 2px}.gun-token small{font-size:9px}.battery-label{font-size:9px}.battery{gap:5px}}
+
+@media(max-width:600px){
+  .vessel-map{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px}
+  .map-hull{grid-column:1/-1;grid-row:2}
+  .battery-port{grid-column:1;grid-row:3;flex-direction:row;align-content:start}
+  .battery-starboard{grid-column:2;grid-row:3;flex-direction:row;align-content:start}
+  .battery-port .battery-label,.battery-starboard .battery-label{width:100%;text-align:center}
+  .battery-stern{grid-row:4}
+  .gun-token{min-width:48px;font-size:12px}.gun-token small{font-size:10px}
+}

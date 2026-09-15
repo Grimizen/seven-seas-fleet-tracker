@@ -1,10 +1,18 @@
-# Queued improvements
+# Change queue
 
-- Full group template management: browse, edit and remove saved templates.
-- Automatically load group templates after sign-in; subscribe to changes rather than requiring manual retrieval. Preserve unsaved forms when updates arrive.
-- Use a distinct selection colour (for example blue), leaving yellow for damaged HP. Keep damage readable on selected sections.
-- Define a fixed section order with Hull first, independent of Firestore map key ordering, including after damage updates.
-- Remove the source cargo row when transferring its entire remaining quantity; preserve undo and quantity conservation.
-- Transfer activity messages must identify both source and destination vessels.
+## Completed in the gun-loadout batch (15 September 2026)
 
-These are deferred; the current change only adds class selection during vessel creation.
+- Configure occupied/empty port, starboard, bow and stern slots; install, replace, remove and move cannons.
+- All 18 GM gun variants with quick family/poundage labels and individual combat reference values.
+- Full saved group-template management: browse, copy, edit, rename and delete.
+- Automatic template loading after owner/GM sign-in and live updates that preserve editor input.
+- Blue section selection separate from amber damage; stable section order after updates.
+- Full cargo transfers remove the empty source row; transfer logs name both ships.
+- Ongoing GM assumption register with stable review IDs in GM-ASSUMPTIONS.md.
+
+## Awaiting GM decisions rather than implementation
+
+- See A01–A25 and the open questions in GM-ASSUMPTIONS.md. No guessed rulings are treated as approved.
+- Detailed ammunition calibre/weight tracking and spare-cannon purchasing/storage remain unmodelled (A15–A16).
+
+No previously queued UI item remains outstanding.

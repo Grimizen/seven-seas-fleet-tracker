@@ -5,7 +5,8 @@ export function packShip(ship) {
   return {
     config:{id:ship.id,name:ship.name,type:ship.type,maxHull:ship.maxHull,minCrew:ship.minCrew??5,maxCrew:ship.maxCrew??48,maxGuns:ship.maxGuns??9,archived:ship.archived===true,
       stationMax:Object.fromEntries(Object.entries(ship.stations).map(([k,v])=>[k,v.max])),
-      mounts:ship.guns.map(({id,name,side})=>({id,name,side}))},
+      ...(ship.armament?{armament:structuredClone(ship.armament)}:{}),
+      mounts:ship.guns.map(({id,name,side,gunType,slotId})=>({id,name,side,...(gunType?{gunType}:{}),...(slotId?{slotId}:{})}))},
     game:{hull:ship.hull,crew:ship.crew,crewLevel:ship.crewLevel,sails:ship.sails,sinking:ship.sinking,
       stations:Object.fromEntries(Object.entries(ship.stations).map(([k,v])=>[k,{hp:v.hp,assigned:v.assigned}])),
       guns:ship.guns.map(({condition,loaded,assigned})=>({condition,loaded,assigned})),
@@ -14,7 +15,7 @@ export function packShip(ship) {
 }
 export function unpackShip(doc) {
   const {config:c,game:g}=doc;
-  return {...structuredClone(g),id:c.id,name:c.name,type:c.type,maxHull:c.maxHull,minCrew:c.minCrew,maxCrew:c.maxCrew,maxGuns:c.maxGuns??9,archived:c.archived===true,
+  return {...structuredClone(g),id:c.id,name:c.name,type:c.type,maxHull:c.maxHull,minCrew:c.minCrew,maxCrew:c.maxCrew,maxGuns:c.maxGuns??9,archived:c.archived===true,...(c.armament?{armament:structuredClone(c.armament)}:{}),
     stations:Object.fromEntries(Object.entries(g.stations).map(([k,v])=>[k,{...v,max:c.stationMax[k]}])),
     guns:g.guns.map((v,i)=>({...v,...c.mounts[i]}))};
 }
@@ -32,7 +33,7 @@ export function transferCargo(from,to,id,amount,newId) {
   if(!Number.isInteger(amount)||amount<1)throw Error('Enter a positive whole quantity.');
   const a=structuredClone(from),b=structuredClone(to),item=a.game.inventory.find(i=>i.id===id);
   if(!item||item.quantity<amount)throw Error('There is not enough stock to transfer.');
-  item.quantity-=amount;
+  item.quantity-=amount;if(item.quantity===0)a.game.inventory=a.game.inventory.filter(i=>i.id!==id);
   const match=b.game.inventory.find(i=>i.name===item.name&&i.category===item.category);
   if(match)match.quantity+=amount;else b.game.inventory.push({...item,id:newId,quantity:amount});
   a.revision++;b.revision++;return [a,b];
@@ -40,7 +41,7 @@ export function transferCargo(from,to,id,amount,newId) {
 // Firestore may return map keys in a different order after a round trip.
 const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'
   ?Object.fromEntries(Object.keys(value).sort().map(k=>[k,canonical(value[k])])):value;
-const equal=(a,b)=>JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
+export const equal=(a,b)=>JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
 export function changes(before,after,path=[]) {
   if(equal(before,after))return [];
   if(before && after && typeof before==='object' && typeof after==='object' && !Array.isArray(before) && !Array.isArray(after)

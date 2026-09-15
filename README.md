@@ -19,3 +19,11 @@ Existing local playtest data is preserved for export and never silently uploaded
 ### Manage fleet
 
 Owners and GMs can archive/restore vessels and change class using Sloop size presets or custom HP and capacity settings. Class changes preserve cargo, equipment and damage; insufficient capacity is rejected. Custom defaults can be saved for the group. Publish the updated Firestore rules as described in FIREBASE-SETUP.md; existing ownership remains intact.
+
+### Gun loadouts and GM review
+
+Use **Guns** to install, replace, remove or move a cannon; owner/GM controls also configure slot counts and allowed gun families. Empty slots are shown in the diagram. The GM catalogue contains 18 variants across Long Gun, Carronade, Howitzer and Swivel Gun, each with its own statistics. Players retain fire/reload and crew controls.
+
+Use **Manage fleet** for automatically synced group templates, including edit/rename/delete. The existing Firestore rules already protect these administrator settings; no new rules are required for this batch. Loadout changes preserve loaded ammunition as described in the confirmation. Existing vessels are not reset.
+
+[GM assumption register](GM-ASSUMPTIONS.md) distinguishes supplied rules from provisional decisions and provides stable approval IDs. [Change queue](CHANGE-QUEUE.md) records the completed batch and unresolved rules questions.
