@@ -1,0 +1,59 @@
+{
+  "source": "Audio files supplied by the project owner. Original filenames retain creator credits; no additional licence claim is made here.",
+  "edits": [
+    {
+      "file": "cannon-1.mp3",
+      "source": "universfield-powerful-cannon-shot-02-487887.mp3",
+      "startSeconds": 0,
+      "durationSeconds": 0.9
+    },
+    {
+      "file": "cannon-2.mp3",
+      "source": "lordsonny-cannon-fire-161072.mp3",
+      "startSeconds": 0,
+      "durationSeconds": 3
+    },
+    {
+      "file": "sails-stowed.mp3",
+      "source": "floraphonic-rope-tighten-knot-4-199788.mp3",
+      "startSeconds": 0.15,
+      "durationSeconds": 1
+    },
+    {
+      "file": "sails-half.mp3",
+      "source": "freesound_community-large-rope-pulley-operated-70719.mp3",
+      "startSeconds": 1.8,
+      "durationSeconds": 2.6
+    },
+    {
+      "file": "sails-full.mp3",
+      "source": "freesound_community-saildeploy-99393.mp3",
+      "startSeconds": 1.1,
+      "durationSeconds": 3
+    },
+    {
+      "file": "crew-1.mp3",
+      "source": "freesound_community-male-hurt-sound-95206.mp3",
+      "startSeconds": 0.12,
+      "durationSeconds": 0.6
+    },
+    {
+      "file": "crew-2.mp3",
+      "source": "freesound_community-male_hurt7-48124.mp3",
+      "startSeconds": 0.06,
+      "durationSeconds": 0.6
+    },
+    {
+      "file": "damage-1.mp3",
+      "source": "freesound_community-wooden-ship-break-85277.mp3",
+      "startSeconds": 0,
+      "durationSeconds": 1.5
+    },
+    {
+      "file": "damage-2.mp3",
+      "source": "freesound_community-wooden-ship-break-85277.mp3",
+      "startSeconds": 1.2,
+      "durationSeconds": 1.5
+    }
+  ]
+}

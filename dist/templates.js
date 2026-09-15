@@ -1,3 +1,4 @@
+import {weight} from './load.js';
 import {armamentFor,validateArmament,normalizeGuns} from './weapons.js';
 import {newShip,stationDefaults} from './model.js';
 
@@ -15,6 +16,7 @@ export function validateTemplate(t){
     if(!Number.isInteger(t[key])||t[key]< (key==='maxGuns'?0:1)||t[key]>10000)throw Error('Template values must be whole numbers between 1 and 10,000 (gun capacity may be zero).');
   if(t.minCrew>t.maxCrew)throw Error('Minimum crew cannot exceed maximum crew.');
   for(const key of Object.keys(stationDefaults))if(!Number.isInteger(t.stationMax[key])||t.stationMax[key]<1||t.stationMax[key]>10000)throw Error('Every section needs a positive whole HP maximum.');
+  weight(t.maxLoad,true);
   validateArmament(armamentFor(t),t.maxGuns);
   return t;
 }
@@ -25,7 +27,7 @@ export function reclassify(doc,template){
   if(doc.config.mounts.length>template.maxGuns)throw Error('This class has fewer gun mounts than the vessel currently carries. Choose a larger capacity.');
   const a=armamentFor(template);validateArmament(a,template.maxGuns,doc.config.mounts);
   const next=structuredClone(doc),old=doc.config;
-  next.config={...old,armament:a,type:template.type,maxHull:template.maxHull,minCrew:template.minCrew,maxCrew:template.maxCrew,maxGuns:template.maxGuns,stationMax:structuredClone(template.stationMax)};
+  next.config={...old,maxLoad:template.maxLoad??null,armament:a,type:template.type,maxHull:template.maxHull,minCrew:template.minCrew,maxCrew:template.maxCrew,maxGuns:template.maxGuns,stationMax:structuredClone(template.stationMax)};
   const preserveDamage=(hp,max,newMax)=>hp===0?0:Math.max(0,newMax-(max-hp));
   next.game.hull=preserveDamage(doc.game.hull,old.maxHull,template.maxHull);
   for(const [key,value] of Object.entries(next.game.stations))value.hp=preserveDamage(value.hp,old.stationMax[key],template.stationMax[key]);
@@ -36,6 +38,7 @@ export function reclassify(doc,template){
 export function createFromTemplate(id,name,template){
   validateTemplate(template);
   const ship=newShip(id,name);
+  ship.maxLoad=template.maxLoad??null;
   ship.type=template.type;ship.maxHull=template.maxHull;ship.hull=template.maxHull;
   ship.minCrew=template.minCrew;ship.maxCrew=template.maxCrew;ship.maxGuns=template.maxGuns;
   ship.crew=Math.min(16,template.maxCrew);

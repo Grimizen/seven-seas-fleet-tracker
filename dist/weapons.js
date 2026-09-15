@@ -17,7 +17,7 @@ export function armamentFor(s){
   return a;
 }
 export function normalizeGuns(guns){const counts={Port:0,Starboard:0,Bow:0,Stern:0};return guns.map(g=>{counts[g.side]++;return {...g,gunType:g.gunType??'long-9',slotId:g.slotId??`${g.side.toLowerCase()}-${counts[g.side]}`};});}
-export const loadoutSignature=s=>JSON.stringify({armament:[...sides.map(side=>armamentFor(s).layout[side]),[...armamentFor(s).broadsideTypes].sort(),[...armamentFor(s).chaseTypes].sort()],guns:normalizeGuns(s.guns).map(g=>[g.id,g.slotId,g.gunType]).sort((a,b)=>a[0].localeCompare(b[0]))});
+export const loadoutSignature=s=>JSON.stringify({armament:[...sides.map(side=>armamentFor(s).layout[side]),[...armamentFor(s).broadsideTypes].sort(),[...armamentFor(s).chaseTypes].sort()],guns:normalizeGuns(s.guns).map(g=>[g.id,g.slotId,g.gunType,g.cargoWeight??null]).sort((a,b)=>a[0].localeCompare(b[0]))});
 export function slotsFor(s){const a=armamentFor(s),guns=normalizeGuns(s.guns);return sides.flatMap(side=>Array.from({length:a.layout[side]},(_,i)=>{const id=`${side.toLowerCase()}-${i+1}`;return {id,side,name:`${side}${['Bow','Stern'].includes(side)?' chase':''} ${i+1}`,gun:guns.find(g=>g.slotId===id)};}));}
 export const allowedTypes=(a,side)=>a[['Bow','Stern'].includes(side)?'chaseTypes':'broadsideTypes'];
 export function validateArmament(a,max,guns=[]){
@@ -38,7 +38,7 @@ export function refit(ship,slotId,type){
   if(!slot||type&&!spec)throw Error('Choose an existing slot and cannon.');
   if(spec&&!allowedTypes(s.armament,slot.side).includes(spec.family))throw Error('This gun family is not permitted in that slot.');
   if(slot.gun?.gunType===type)return s;
-  if(slot.gun?.loaded){const name=slot.gun.loaded,item=s.inventory.find(i=>i.category==='Ammunition'&&i.name===name);if(item)item.quantity++;else s.inventory.push({id:crypto.randomUUID(),name,category:'Ammunition',quantity:1});}
+  if(slot.gun?.loaded){const name=slot.gun.loaded,item=s.inventory.find(i=>i.category==='Ammunition'&&i.name===name&&(i.unitWeight??null)===(slot.gun.loadedUnitWeight??null));if(item)item.quantity++;else s.inventory.push({id:crypto.randomUUID(),name,category:'Ammunition',quantity:1,unitWeight:slot.gun.loadedUnitWeight??null});}
   s.guns=s.guns.filter(g=>g.slotId!==slotId);
   if(spec)s.guns.push({id:crypto.randomUUID(),slotId,side:slot.side,name:slot.name,gunType:spec.id,condition:'operational',loaded:null,assigned:0});
   return s;

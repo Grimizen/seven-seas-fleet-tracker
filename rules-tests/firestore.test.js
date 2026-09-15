@@ -106,3 +106,21 @@ test('GM may remove a saved template entry; players cannot read or change templa
   await assertFails(getDoc(doc(dbFor('player'),base,'settings','templates')));
   await assertFails(setDoc(doc(dbFor('player'),base,'settings','templates'),{items:[]}));
 });
+
+test('load metadata and casualties work under existing permissions without changing ownership',async()=>{
+  const ref=doc(dbFor('gm'),base,'ships','weight-test'),original=defaultSharedShip();original.config.id='weight-test';
+  original.config.maxLoad=500;original.config.mounts[0].cargoWeight=9;
+  original.game.guns[0].assigned=3;
+  await assertSucceeds(setDoc(ref,original));
+  const playerRef=doc(dbFor('player'),base,'ships','weight-test');
+  let next=changeShip(original,{type:'edit-item',id:'lead',name:'Lead shot',category:'Ammunition',unitWeight:9});
+  next=changeShip(next,{type:'loaded-weight',id:'gun-1',amount:9});
+  next=changeShip(next,{type:'crew-loss',losses:[{target:'gun:gun-1',amount:2}]});
+  await assertSucceeds(setDoc(playerRef,next));
+  const saved=(await getDoc(playerRef)).data();
+  if(saved.game.crew!==14||saved.game.guns[0].assigned!==1)throw Error('Casualty update incomplete');
+  await assertFails(updateDoc(playerRef,{'config.maxLoad':999}));
+  const mounts=structuredClone(saved.config.mounts);mounts[0].cargoWeight=0;
+  await assertFails(updateDoc(playerRef,{'config.mounts':mounts}));
+  await assertSucceeds(updateDoc(ref,{'config.maxLoad':null}));
+});

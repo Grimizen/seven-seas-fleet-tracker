@@ -15,6 +15,7 @@ Source: *Cannons & Ammunition.pdf*, supplied by the GM, pages 1–3. These are r
 | R05 | Chain shot doubles damage to masts. Grape and fire shot halve range and ship damage, and add 5× damage to crew. Effects are displayed as reference notes, not rolled automatically. | pp. 2–3 |
 | R06 | Fire shot critically fails on 1 or 2; critical hits add fires by weight: d4 / 2d4 / 3d4 / 4d4. | p. 3 |
 | R07 | Sloop Small / Medium / Large values: hull 10/15/20; crew minimum 2/3/5, maximum 24/36/48; maximum guns 5/7/9. | Ships.pdf |
+| R08 | Each ship has a maximum load shared between equipment and free cargo; arming the vessel reduces cargo space. No numerical capacities were supplied. | GM statement relayed by the player, September 2026 |
 
 ## Assumptions awaiting GM decisions
 
@@ -27,7 +28,7 @@ Source: *Cannons & Ammunition.pdf*, supplied by the GM, pages 1–3. These are r
 | A05 | Compartment damage does not remove inventory, consume supplies or restrict cargo access, including Larder and Hold. | Explicit provisional player preference. | Pending |
 | A06 | Mast and Gun Deck each use one shared HP pool, not per physical mast/deck. | Simplification until per-instance rules exist. | Pending |
 | A07 | Gun Deck destruction blocks firing and reload for every gun, including chase and swivels. Powder Dock destruction blocks reload but preserves loaded rounds. | Inferred service dependencies; particularly needs review for rail-mounted swivels. | Pending |
-| A08 | Hull zero prompts a manual d12 sinking countdown; 1 means immediate sinking. Hull repairs do not automatically cancel that countdown. | Naval-combat interpretation; repair interaction unresolved. | Pending |
+| A08 | Hull zero prompts a manual d12 sinking countdown; 1 means immediate sinking. Hull repairs do not automatically cancel that countdown. Once hull HP is positive, the table can explicitly end sinking. | Naval-combat interpretation; repair interaction unresolved. | Pending |
 | A09 | Crew shortages warn but do not prevent firing. Crew assignments may not exceed total general crew, but officer staffing is not counted. | Let the table adjudicate staffing and turns. | Pending |
 | A10 | A reload is completed manually after an uninterrupted turn. It consumes one stored round; firing consumes the loaded round only. | Existing combat workflow; no turn engine. | Pending |
 | A11 | Maximum Sloop guns 5/7/9 means 2+2+1, 3+3+1, or 4+4+1: equal broadsides plus one chase slot. | Player proposal; the document does not give the slot split. | Pending |
@@ -40,11 +41,15 @@ Source: *Cannons & Ammunition.pdf*, supplied by the GM, pages 1–3. These are r
 | A18 | Moving a cannon to an empty compatible slot preserves damage condition, loaded round and assigned crew. | Reconfiguration, not a timed combat action. | Pending |
 | A19 | Shrinking a layout cannot delete occupied slots. Incompatible installed guns block new mounting restrictions. Move/remove those guns first. | Avoid silent equipment loss. | Pending |
 | A20 | Changing class preserves missing HP as an absolute amount; already-destroyed sections stay destroyed. Smaller maxima may reduce damaged sections to zero. Sinking countdowns are preserved. | Avoid free repairs or silent state loss. | Pending |
-| A21 | Class changes preserve crew, cargo, officers and installed guns; capacity/slot conflicts are rejected. | Existing fleet-management policy. | Pending |
+| A21 | Class changes preserve crew, cargo, officers and installed guns; crew capacity/slot conflicts are rejected; excess load warns without blocking. | Existing fleet-management policy. | Pending |
 | A22 | New vessels start with up to 16 crew and up to four loaded 9lb long guns in available permitted broadside slots, with 30 total lead rounds (unused loaded rounds remain in stores). | Sea Wren playtest defaults, not a general equipment entitlement. | Pending |
 | A23 | Movement remains 6/9/12 hexes with turn costs 3/6/9 for every class until other vessel rules are supplied. | Only Sloop movement is established. | Pending |
 | A24 | Damage rolls, target eligibility, range, critical effects, fires, repair costs, daily consumption and combat turns remain table adjudication. | Management app rather than a combat rules engine. | Pending |
 | A25 | Cannon/station crew are not automatically interchangeable within a turn; officer bonuses/qualifications are not automated. | Detailed officer and staffing rules missing. | Pending |
+| A26 | Record direct casualty counts, explicitly choosing unassigned sailors, section assignments or gun teams. Decrease general crew and the selected assignments together. Officers and section HP stay unchanged; no wound/crew-HP model. | Player confirmed direct casualties; targeting by section remains an assumption for GM review. | Pending |
+| A27 | Use pounds for load. A gun's poundage is its provisional cargo weight (9lb gun = 9lb load), editable per installed gun. This is a game placeholder, not physical cannon mass. | Explicit player decision pending GM weights. | Pending |
+| A28 | Load is installed guns (including damaged/destroyed guns still aboard), stored cargo/equipment and loaded rounds. Crew and hull are excluded. Unit weights for cargo are entered by players; legacy cargo/loaded rounds remain unknown until edited. | Minimal implementation of R08; no missing weights invented. | Pending |
+| A29 | Unknown vessel capacity remains unset. Excess load produces a warning and does not block combat, cargo additions or class changes. No automatic speed or sinking penalty. | Numeric capacities and overload consequences not supplied. | Pending |
 
 ## Original Sea Wren setup (historical, not a reset instruction)
 
@@ -57,7 +62,8 @@ Large Sloop section HP: Bridge 5, Rudder 3, Mast 5, Gun Deck 8, Powder Dock 3, A
 - Is damage/HP per mast or deck? What penalty applies when only one is disabled?
 - Do officers contribute cannon crew or overlap roles? Must reload crew remain assigned for a whole turn?
 - What repair actions/costs restore services or stop sinking?
-- How do crew damage and wounded sailors change the general crew count?
+- How does damage convert to casualties or wounds? Can a hit target a section’s crew, and are officers ever affected?
+- What are each vessel’s load capacity, gun weights and overload penalties? Confirm pounds and whether ammunition, crew, fittings or other equipment count.
 - Does ammunition compatibility use weight category or exact poundage, and what does swivel ammunition cost?
 - Does chain shot fired from a chase gun get extra targeting benefits? Are swivels outside Gun Deck service dependencies?
 - Naval combat: confirm the missing critical-failure roll 5 and the partial-cover modifier/example.
@@ -71,3 +77,5 @@ Large Sloop section HP: Bridge 5, Rudder 3, Mast 5, Gun Deck 8, Powder Dock 3, A
 - A full cargo transfer removes the source row; both source and destination are recorded in the log. Undo checks for conflicting changes and will not cross a loadout change.
 - No automatic conversion/reset of existing fleet data is performed. Existing gun records without a type are treated as 9lb long guns. Legacy asymmetric gun placements are kept visible.
 - Slot layouts are capped at 100 for this small app; larger values require revisiting the presentation and validation.
+
+- Sound effects are local feedback after successful actions, with per-device mute/volume. They carry no rules implications; two damage clips are edits of the same supplied wood-break source.

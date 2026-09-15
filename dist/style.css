@@ -52,3 +52,5 @@ svg .station:hover rect,svg .station:focus rect{stroke:#80c9ff}
   .battery-stern{grid-row:4}
   .gun-token{min-width:48px;font-size:12px}.gun-token small{font-size:10px}
 }
+
+.casualty-targets{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0}.load-summary strong{overflow-wrap:anywhere}.item-edit-form{flex-wrap:wrap}.item-edit-form label{min-width:0;flex:1 1 150px}#sound-dialog input[type=checkbox]{width:auto}#sound-dialog input[type=range]{width:100%}.cargo-add-form{flex-wrap:wrap}

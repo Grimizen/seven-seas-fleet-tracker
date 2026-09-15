@@ -1,3 +1,5 @@
+import {weight} from './load.js';
+import {loseCrew} from './crew.js';
 import {ammoAllowed} from './weapons.js';
 export const stationDefaults = {Bridge:5,Rudder:3,Mast:5,'Gun Deck':8,'Powder Dock':3,Anchors:3,Infirmary:3,Larder:3,Hold:5};
 export const sectionOrder=['Bridge','Mast','Gun Deck','Powder Dock','Infirmary','Larder','Hold','Anchors','Rudder'];
@@ -8,12 +10,16 @@ export function assigned(ship){return Object.values(ship.stations).reduce((n,s)=
 export function apply(ship,action){const s=structuredClone(ship);const g=s.guns.find(g=>g.id===action.id);const n=Number(action.amount);switch(action.type){
 case 'sails': if(![0,1,2].includes(n))throw Error('Choose a sail state.');s.sails=n;break;
 case 'hp': {if(!Number.isInteger(n))throw Error('Enter a whole HP amount.');if(action.id==='Hull'){s.hull=Math.max(0,Math.min(s.maxHull,s.hull+n));}else {const st=s.stations[action.id];if(!st)throw Error('Unknown section.');st.hp=Math.max(0,Math.min(st.max,st.hp+n));}break;}
-case 'fire': if(!g||g.condition!=='operational'||!g.loaded)throw Error('This cannon is not ready.');if(s.stations['Gun Deck'].hp===0)throw Error('The gun deck is destroyed.');g.loaded=null;break;
-case 'reload': {if(!g||g.condition!=='operational'||g.loaded)throw Error('This cannon cannot reload.');if(!s.stations['Powder Dock'].hp||!s.stations['Gun Deck'].hp)throw Error('Restore the gun deck and powder dock before reloading.');const ammo=s.inventory.find(i=>i.id===action.ammo);if(!ammo||ammo.category!=='Ammunition'||ammo.quantity<1)throw Error('No ammunition available.');if(!ammoAllowed(g,ammo))throw Error('Swivel guns may only load lead shot.');ammo.quantity--;g.loaded=ammo.name;break;}
+case 'fire': if(!g||g.condition!=='operational'||!g.loaded)throw Error('This cannon is not ready.');if(s.stations['Gun Deck'].hp===0)throw Error('The gun deck is destroyed.');g.loaded=null;g.loadedUnitWeight=null;break;
+case 'reload': {if(!g||g.condition!=='operational'||g.loaded)throw Error('This cannon cannot reload.');if(!s.stations['Powder Dock'].hp||!s.stations['Gun Deck'].hp)throw Error('Restore the gun deck and powder dock before reloading.');const ammo=s.inventory.find(i=>i.id===action.ammo);if(!ammo||ammo.category!=='Ammunition'||ammo.quantity<1)throw Error('No ammunition available.');if(!ammoAllowed(g,ammo))throw Error('Swivel guns may only load lead shot.');ammo.quantity--;g.loaded=ammo.name;g.loadedUnitWeight=ammo.unitWeight??null;break;}
 case 'gun-condition':if(!g||!['operational','disabled','destroyed'].includes(action.value))throw Error('Invalid cannon condition.');g.condition=action.value;break;
 case 'inventory':{const item=s.inventory.find(i=>i.id===action.id);if(!item||!Number.isInteger(n)||item.quantity+n<0)throw Error('Quantity must be a nonnegative whole number.');item.quantity+=n;break;}
 case 'remove-item':if(!s.inventory.some(i=>i.id===action.id))throw Error('Item no longer exists.');s.inventory=s.inventory.filter(i=>i.id!==action.id);break;
-case 'add-item':if(!action.name?.trim()||!Number.isInteger(n)||n<1)throw Error('Enter an item and positive whole quantity.');s.inventory.push({id:action.id,name:action.name.trim().slice(0,80),quantity:n,category:action.category});break;
+case 'add-item':if(!action.name?.trim()||!Number.isInteger(n)||n<1)throw Error('Enter an item and positive whole quantity.');s.inventory.push({id:action.id,name:action.name.trim().slice(0,80),quantity:n,category:action.category,unitWeight:weight(action.unitWeight)});break;
+case 'edit-item':{const item=s.inventory.find(i=>i.id===action.id);if(!item||!action.name?.trim())throw Error('Choose an item and enter its name.');item.name=action.name.trim().slice(0,80);item.category=action.category;item.unitWeight=weight(action.unitWeight);break;}
+case 'loaded-weight':if(!g?.loaded)throw Error('There is no loaded round.');g.loadedUnitWeight=weight(action.amount,true);break;
+case 'crew-loss':return loseCrew(s,action.losses);
+case 'end-sinking':if(s.hull<=0)throw Error('Restore hull HP before ending the sinking countdown.');s.sinking=null;break;
 case 'crew':if(!Number.isInteger(n)||n<0||n>(s.maxCrew??48)||n<assigned(s))throw Error(`Crew must cover assignments and stay within 0–${s.maxCrew??48}.`);s.crew=n;break;
 case 'assign':if(!Number.isInteger(n)||n<0)throw Error('Enter a nonnegative whole crew count.');if(g)g.assigned=n;else if(s.stations[action.id])s.stations[action.id].assigned=n;else throw Error('Unknown station.');if(assigned(s)>s.crew)throw Error('Not enough unassigned crew.');break;
 case 'officer':if(!(action.id in s.officers))throw Error('Unknown role.');s.officers[action.id]=action.value.slice(0,80);break;
