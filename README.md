@@ -15,3 +15,7 @@ Selectable section/cannon diagram, bounded damage/repair, manual sinking countdo
 The web Firebase configuration is public by design. Database rules enforce access; do not add service-account keys or secrets to this repository. Firebase rules are deployed separately through the Console or Firebase CLI; the Pages workflow does not change them.
 
 Existing local playtest data is preserved for export and never silently uploaded. The shared fleet is explicitly initialised by the owner. See GM-ASSUMPTIONS.md for the campaign defaults. Full ship-template editing, officer ability levels, fire simulation and granular ammunition compatibility remain future work.
+
+### Manage fleet
+
+Owners and GMs can archive/restore vessels and change class using Sloop size presets or custom HP and capacity settings. Class changes preserve cargo, equipment and damage; insufficient capacity is rejected. Custom defaults can be saved for the group. Publish the updated Firestore rules as described in FIREBASE-SETUP.md; existing ownership remains intact.

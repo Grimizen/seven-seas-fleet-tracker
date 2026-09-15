@@ -4,6 +4,7 @@ import {getFirestore,doc,collection,onSnapshot,runTransaction,setDoc,getDoc,quer
 import {firebaseConfig} from './firebase-config.js';
 import {changeShip,transferCargo,changes,undoChanges,defaultSharedShip,packShip,unpackShip} from './shared-model.js';
 import {newShip} from './model.js';
+import {reclassify,validateTemplate} from './templates.js';
 
 export function createCloud(callbacks){
   const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
@@ -41,6 +42,7 @@ export function createCloud(callbacks){
       const old=await Promise.all(ids.map(id=>tx.get(shipRef(id))));
       if(old.some(s=>!s.exists()))throw Error('This vessel no longer exists.');
       const before=old.map(s=>s.data()),after=transform(before);
+      if(before.some(d=>d.config.archived))throw Error('Restore this vessel before changing its gameplay state.');
       if(user?.uid!==actor)throw Error('Your account changed. Try again.');
       after.forEach((value,i)=>tx.set(shipRef(ids[i]),value));activity(tx,op,text);
       return {ids,actor,patches:before.map((d,i)=>changes(d.game,after[i].game)),text};
@@ -55,6 +57,10 @@ export function createCloud(callbacks){
     addShip:async(name,id=crypto.randomUUID())=>{requireAdmin();const value=id==='sea-wren'?defaultSharedShip():packShip(newShip(id,name));value.config.name=name;
       await runTransaction(db,async tx=>{const ref=shipRef(id),existing=await tx.get(ref);if(existing.exists())throw Error('This vessel already exists.');tx.set(ref,value);activity(tx,crypto.randomUUID(),`Added vessel ${name}`);});return id;},
     renameShip:async(id,name)=>{requireAdmin();await runTransaction(db,async tx=>{const ref=shipRef(id),snapshot=await tx.get(ref);if(!snapshot.exists())throw Error('Vessel not found.');const value=snapshot.data();tx.update(ref,{config:{...value.config,name},revision:value.revision+1});activity(tx,crypto.randomUUID(),`Renamed vessel to ${name}`);});},
+    configureShip:async(id,template)=>{requireAdmin();await runTransaction(db,async tx=>{const ref=shipRef(id),snapshot=await tx.get(ref);if(!snapshot.exists())throw Error('Vessel not found.');tx.set(ref,reclassify(snapshot.data(),template));activity(tx,crypto.randomUUID(),`Changed vessel class to ${template.type}`);});},
+    archiveShip:async(id,archived)=>{requireAdmin();await runTransaction(db,async tx=>{const ref=shipRef(id),snapshot=await tx.get(ref);if(!snapshot.exists())throw Error('Vessel not found.');const value=snapshot.data();tx.update(ref,{config:{...value.config,archived},revision:value.revision+1});activity(tx,crypto.randomUUID(),`${archived?'Archived':'Restored'} vessel ${value.config.name}`);});},
+    loadTemplates:async()=>{requireAdmin();const snapshot=await getDoc(doc(db,base,'settings','templates'));return snapshot.exists()?snapshot.data().items:[];},
+    saveTemplate:async template=>{requireAdmin();validateTemplate(template);await runTransaction(db,async tx=>{const ref=doc(db,base,'settings','templates'),snap=await tx.get(ref),items=snap.exists()?snap.data().items:[];const next=items.filter(t=>t.type!==template.type);if(next.length>=50)throw Error('Up to 50 custom templates can be saved.');tx.set(ref,{items:[...next,template]});});},
     invite:async(email,access)=>{requireAdmin();if(!['admin','member'].includes(access))throw Error('Choose a valid role.');await setDoc(doc(db,base,'invites',email.trim().toLowerCase()),{role:access});}
   };
 }

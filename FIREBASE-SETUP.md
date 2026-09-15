@@ -48,3 +48,9 @@ Inviting an existing member does not change their existing role. The owner can c
 After owner setup, sign in on two separate devices. Change sails on one and confirm the other updates. Fire a cannon once, confirm it needs reload on both, and reload it once. Confirm stored shot decreases by one. Sign in with an uninvited account and confirm it cannot read the fleet. Check a Player account has gameplay controls but no Manage fleet tab.
 
 Google sign-in uses a popup; open the app in Safari/Chrome rather than a messaging app's embedded browser. The authorized domain is `grimizen.github.io`. Local development needs its exact hostname added separately to Firebase Authentication's authorized domains.
+
+## Fleet management update
+
+Publish the latest `firestore.rules` in Firebase Console > Firestore > Rules before using vessel class changes, archives or saved templates. GitHub Pages publishes the app, not Firebase rules. Keep the existing owner membership document unchanged; no ownership setup or data migration is required.
+
+Manage fleet now supports recoverable removal, restoration, Sloop size presets and custom class defaults. Archived vessels retain all data and disappear from gameplay selectors and cargo transfers. Restore them through Manage fleet, including when every vessel is archived. Saved templates are stored in `campaigns/seven-seas/settings/templates`; only owners and GMs can access these settings. Saving defaults does not change existing ships.

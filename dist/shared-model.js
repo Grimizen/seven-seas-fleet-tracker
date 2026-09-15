@@ -3,7 +3,7 @@ import {apply,newShip} from './model.js';
 // Keep administrator configuration outside the participant-editable game state.
 export function packShip(ship) {
   return {
-    config:{id:ship.id,name:ship.name,type:ship.type,maxHull:ship.maxHull,minCrew:5,maxCrew:48,
+    config:{id:ship.id,name:ship.name,type:ship.type,maxHull:ship.maxHull,minCrew:ship.minCrew??5,maxCrew:ship.maxCrew??48,maxGuns:ship.maxGuns??9,archived:ship.archived===true,
       stationMax:Object.fromEntries(Object.entries(ship.stations).map(([k,v])=>[k,v.max])),
       mounts:ship.guns.map(({id,name,side})=>({id,name,side}))},
     game:{hull:ship.hull,crew:ship.crew,crewLevel:ship.crewLevel,sails:ship.sails,sinking:ship.sinking,
@@ -14,7 +14,7 @@ export function packShip(ship) {
 }
 export function unpackShip(doc) {
   const {config:c,game:g}=doc;
-  return {...structuredClone(g),id:c.id,name:c.name,type:c.type,maxHull:c.maxHull,
+  return {...structuredClone(g),id:c.id,name:c.name,type:c.type,maxHull:c.maxHull,minCrew:c.minCrew,maxCrew:c.maxCrew,maxGuns:c.maxGuns??9,archived:c.archived===true,
     stations:Object.fromEntries(Object.entries(g.stations).map(([k,v])=>[k,{...v,max:c.stationMax[k]}])),
     guns:g.guns.map((v,i)=>({...v,...c.mounts[i]}))};
 }

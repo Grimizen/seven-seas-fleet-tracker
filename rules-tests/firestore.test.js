@@ -3,6 +3,7 @@ import {test,before,after} from 'node:test';
 import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
 import {doc,setDoc,getDoc,updateDoc,runTransaction,serverTimestamp} from 'firebase/firestore';
 import {defaultSharedShip,changeShip,transferCargo} from '../dist/shared-model.js';
+import {templates,reclassify} from '../dist/templates.js';
 let env;
 const base='campaigns/seven-seas';
 before(async()=>{
@@ -14,6 +15,24 @@ before(async()=>{
   });
 });
 after(async()=>{await env?.cleanup();});
+test('GM class changes and archives preserve owner access; players cannot configure or edit archives',async()=>{
+  const db=dbFor('gm'),ref=doc(db,base,'ships','archive-test');
+  const original=defaultSharedShip();original.config.id='archive-test';
+  await assertSucceeds(setDoc(ref,reclassify({...original,revision:-1},templates[0])));
+  const playerRef=doc(dbFor('player'),base,'ships','archive-test');
+  await assertSucceeds(updateDoc(playerRef,{'game.hull':9}));
+  await assertFails(updateDoc(playerRef,{'config.archived':true}));
+  await assertSucceeds(updateDoc(ref,{'config.archived':true}));
+  await assertFails(updateDoc(playerRef,{'game.hull':8}));
+  await assertFails(updateDoc(playerRef,{'config.archived':false}));
+  await assertSucceeds(updateDoc(ref,{'config.archived':false}));
+  await assertSucceeds(updateDoc(playerRef,{'game.hull':8}));
+  const owner=await getDoc(doc(dbFor('owner'),base,'members','owner'));
+  if(owner.data().role!=='owner')throw Error('Ownership changed.');
+  const settings=doc(db,base,'settings','templates');
+  await assertSucceeds(setDoc(settings,{items:[templates[0]]}));
+  await assertFails(setDoc(doc(dbFor('player'),base,'settings','templates'),{items:[]}));
+});
 const dbFor=(uid,verified=true)=>env.authenticatedContext(uid,{email:`${uid}@example.com`,email_verified:verified}).firestore();
 test('anonymous, unverified, and uninvited accounts cannot read ships',async()=>{
   for(const db of [env.unauthenticatedContext().firestore(),dbFor('stranger'),dbFor('player',false)])await assertFails(getDoc(doc(db,base,'ships','sea-wren')));
@@ -63,4 +82,3 @@ test('cargo transfer and authenticated activity commit atomically',async()=>{
   if((await getDoc(a)).data().game.inventory[0].quantity!==initialA-3||(await getDoc(b)).data().game.inventory[0].quantity!==initialB+3)throw Error('Transfer was not conserved.');
   await assertFails(setDoc(doc(db,base,'activity','forged-actor'),{actor:'owner',text:'Forged actor',at:serverTimestamp()}));
 });
-

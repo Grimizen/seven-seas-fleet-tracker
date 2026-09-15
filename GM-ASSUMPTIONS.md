@@ -44,3 +44,11 @@
 - Account/display identity is separate from officer or character assignments.
 - Mobile controls below the diagram; laptop controls in a right panel.
 - Firebase sign-in and shared storage are implemented. Production access requires publishing firestore.rules and manually bootstrapping the owner UID; see FIREBASE-SETUP.md. Existing local playtest data is retained separately.
+
+## Vessel class changes and archiving
+
+- Removing a vessel archives it; it never permanently deletes crew, ammunition, cargo or history.
+- Changing class preserves missing HP as an absolute amount. Destroyed hulls and sections stay destroyed even when their maximum increases. A smaller maximum can reduce damaged sections to zero. Sinking countdowns remain manual.
+- Crew, officers, installed guns, loaded rounds and cargo are retained. A class with insufficient crew or gun capacity is rejected.
+- Small, Medium and Large Sloop presets use the supplied values. Other class values require GM entry. The schematic and movement controls remain the existing Sloop layout and movement values; custom defaults currently cover integrity and capacity only.
+- Templates are snapshots: applying a saved template is explicit; later template edits do not alter vessels already in play.

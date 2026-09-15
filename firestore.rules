@@ -7,7 +7,7 @@ service cloud.firestore {
     function admin() { return member() && get(memberPath()).data.role in ['owner','admin']; }
     function owner() { return member() && get(memberPath()).data.role == 'owner'; }
     function count(n,max) { return n is int && n >= 0 && n <= max; }
-    function station(s,max) { return count(s.hp,max) && count(s.assigned,48); }
+    function station(s,max) { return count(s.hp,max) && count(s.assigned,10000); }
     function gun(g) { return g.condition in ['operational','disabled','destroyed'] && (g.loaded == null || (g.loaded is string && g.loaded.size() <= 80)) && count(g.assigned,48); }
     function valid(d,id) {
       let c = d.config;
@@ -15,16 +15,18 @@ service cloud.firestore {
       let s = g.stations;
       return d.keys().hasOnly(['config','game','revision'])
         && c.id == id && c.name is string && c.name.size() > 0 && c.name.size() <= 60
-        && c.type == 'Large Sloop' && c.maxHull == 20 && c.minCrew == 5 && c.maxCrew == 48
-        && c.mounts is list && c.mounts.size() == 4
-        && c.stationMax == {'Bridge':5,'Rudder':3,'Mast':5,'Gun Deck':8,'Powder Dock':3,'Anchors':3,'Infirmary':3,'Larder':3,'Hold':5}
+        && c.type is string && c.type.size() > 0 && c.type.size() <= 60
+        && count(c.maxHull,10000) && c.maxHull > 0 && count(c.minCrew,c.maxCrew) && count(c.maxCrew,10000)
+        && c.get('archived',false) is bool
+        && c.mounts is list && c.mounts.size() <= 100
+        && c.stationMax.keys().hasOnly(['Bridge','Rudder','Mast','Gun Deck','Powder Dock','Anchors','Infirmary','Larder','Hold'])
         && g.keys().hasOnly(['hull','crew','crewLevel','sails','sinking','stations','guns','inventory','officers'])
         && count(g.hull,c.maxHull) && count(g.crew,c.maxCrew) && count(g.crewLevel,100)
         && g.sails in [0,1,2] && (g.sinking == null || count(g.sinking,12))
         && s.keys().hasOnly(c.stationMax.keys())
-        && station(s.Bridge,5) && station(s.Rudder,3) && station(s.Mast,5) && station(s['Gun Deck'],8)
-        && station(s['Powder Dock'],3) && station(s.Anchors,3) && station(s.Infirmary,3) && station(s.Larder,3) && station(s.Hold,5)
-        && g.guns is list && g.guns.size() == 4
+        && station(s['Bridge'],c.stationMax['Bridge']) && station(s['Rudder'],c.stationMax['Rudder']) && station(s['Mast'],c.stationMax['Mast']) && station(s['Gun Deck'],c.stationMax['Gun Deck'])
+        && station(s['Powder Dock'],c.stationMax['Powder Dock']) && station(s['Anchors'],c.stationMax['Anchors']) && station(s['Infirmary'],c.stationMax['Infirmary']) && station(s['Larder'],c.stationMax['Larder']) && station(s['Hold'],c.stationMax['Hold'])
+        && g.guns is list && g.guns.size() == c.mounts.size()
         && g.inventory is list && g.inventory.size() <= 500 && g.officers is map
         && d.revision is int && d.revision >= 0;
     }
@@ -54,7 +56,13 @@ service cloud.firestore {
       allow read: if member();
       allow create: if admin() && valid(request.resource.data,id) && request.resource.data.revision == 0;
       allow update: if member() && valid(request.resource.data,id)
-        && (admin() || request.resource.data.config == resource.data.config);
+        && (admin() || (!resource.data.config.get('archived',false) && request.resource.data.config == resource.data.config));
+      allow delete: if false;
+    }
+    match /campaigns/seven-seas/settings/templates {
+      allow read: if admin();
+      allow create, update: if admin() && request.resource.data.keys().hasOnly(['items'])
+        && request.resource.data.items is list && request.resource.data.items.size() <= 50;
       allow delete: if false;
     }
     match /campaigns/seven-seas/activity/{id} {
@@ -66,4 +74,3 @@ service cloud.firestore {
     }
   }
 }
-
