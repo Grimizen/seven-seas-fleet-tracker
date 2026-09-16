@@ -25,7 +25,7 @@ test('replacing a loaded cannon conserves its shot and releases assigned sailors
 test('moving a cannon preserves state; occupied or forbidden destinations reject',()=>{
   const s=newShip();s.guns[0].condition='disabled';s.guns[0].assigned=2;
   const moved=moveGun(s,'port-1','bow-1'),gun=slotsFor(moved).find(v=>v.id==='bow-1').gun;
-  assert.equal(gun.loaded,'Lead shot');assert.equal(gun.assigned,2);assert.equal(gun.condition,'disabled');
+  assert.equal(gun.loaded,'Lead shot - light');assert.equal(gun.assigned,2);assert.equal(gun.condition,'disabled');
   assert.throws(()=>moveGun(s,'port-1','starboard-1'),/empty destination/);
   s.armament=armamentFor(s);s.armament.chaseTypes=['Swivel Gun'];
   assert.throws(()=>moveGun(s,'port-1','bow-1'),/not allowed/);

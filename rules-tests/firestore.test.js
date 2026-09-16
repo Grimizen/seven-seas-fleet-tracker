@@ -1,4 +1,5 @@
 import {refit} from '../dist/weapons.js';
+import {fromCatalogue} from '../dist/cargo-catalogue.js';
 import {readFile} from 'node:fs/promises';
 import {test,before,after} from 'node:test';
 import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
@@ -109,18 +110,31 @@ test('GM may remove a saved template entry; players cannot read or change templa
 
 test('load metadata and casualties work under existing permissions without changing ownership',async()=>{
   const ref=doc(dbFor('gm'),base,'ships','weight-test'),original=defaultSharedShip();original.config.id='weight-test';
-  original.config.maxLoad=500;original.config.mounts[0].cargoWeight=9;
+  original.config.capacityUnits=500;original.config.mounts[0].cargoUnits=9;
   original.game.guns[0].assigned=3;
   await assertSucceeds(setDoc(ref,original));
   const playerRef=doc(dbFor('player'),base,'ships','weight-test');
-  let next=changeShip(original,{type:'edit-item',id:'lead',name:'Lead shot',category:'Ammunition',unitWeight:9});
-  next=changeShip(next,{type:'loaded-weight',id:'gun-1',amount:9});
+  let next=changeShip(original,{type:'edit-item',id:'lead',name:'Lead shot - light',category:'Ammunition',cargoUnits:1/16,quantityUnit:'item'});
+  next=changeShip(next,{type:'loaded-weight',id:'gun-1',cargo:{name:'Lead shot - light',cargoUnits:1/16}});
   next=changeShip(next,{type:'crew-loss',losses:[{target:'gun:gun-1',amount:2}]});
   await assertSucceeds(setDoc(playerRef,next));
   const saved=(await getDoc(playerRef)).data();
   if(saved.game.crew!==14||saved.game.guns[0].assigned!==1)throw Error('Casualty update incomplete');
-  await assertFails(updateDoc(playerRef,{'config.maxLoad':999}));
-  const mounts=structuredClone(saved.config.mounts);mounts[0].cargoWeight=0;
+  await assertFails(updateDoc(playerRef,{'config.capacityUnits':999}));
+  const mounts=structuredClone(saved.config.mounts);mounts[0].cargoUnits=0;
   await assertFails(updateDoc(playerRef,{'config.mounts':mounts}));
-  await assertSucceeds(updateDoc(ref,{'config.maxLoad':null}));
+  await assertSucceeds(updateDoc(ref,{'config.capacityUnits':null}));
+});
+
+test('players may classify legacy cargo and transfer fractional bulk with catalogue metadata',async()=>{
+  const gm=dbFor('gm'),a=defaultSharedShip(),b=defaultSharedShip();a.config.id='bulk-a';b.config.id='bulk-b';
+  a.game.inventory=[{id:'silk',...fromCatalogue('bulk-silk'),quantity:2.5},{id:'legacy',name:'Lead shot',category:'Ammunition',quantity:26,unitWeight:9}];
+  await assertSucceeds(setDoc(doc(gm,base,'ships','bulk-a'),a));await assertSucceeds(setDoc(doc(gm,base,'ships','bulk-b'),b));
+  const db=dbFor('player'),ar=doc(db,base,'ships','bulk-a'),br=doc(db,base,'ships','bulk-b');
+  const classified=changeShip(a,{type:'edit-item',id:'legacy',...fromCatalogue('shot-lead-light')});
+  await assertSucceeds(setDoc(ar,classified));
+  await assertSucceeds(runTransaction(db,async tx=>{const x=await tx.get(ar),y=await tx.get(br),[nextA,nextB]=transferCargo(x.data(),y.data(),'silk',.75,'moved');tx.set(ar,nextA);tx.set(br,nextB);}));
+  const saved=(await getDoc(ar)).data().game.inventory,received=(await getDoc(br)).data().game.inventory;
+  if(saved.find(v=>v.id==='silk').quantity!==1.75||received.find(v=>v.id==='moved').marketValue!==2500||saved.find(v=>v.id==='legacy').unitWeight!==9)throw Error('Cargo data was lost');
+  await assertFails(updateDoc(ar,{'config.capacityUnits':999}));
 });

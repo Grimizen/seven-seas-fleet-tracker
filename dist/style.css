@@ -54,3 +54,5 @@ svg .station:hover rect,svg .station:focus rect{stroke:#80c9ff}
 }
 
 .casualty-targets{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0}.load-summary strong{overflow-wrap:anywhere}.item-edit-form{flex-wrap:wrap}.item-edit-form label{min-width:0;flex:1 1 150px}#sound-dialog input[type=checkbox]{width:auto}#sound-dialog input[type=range]{width:100%}.cargo-add-form{flex-wrap:wrap}
+
+.cargo-editor{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}.cargo-editor p,.cargo-editor .check-label{grid-column:1/-1}.cargo-editor label{min-width:0}.check-label input[type=checkbox]{width:auto}.cargo-editor button{align-self:end}.cargo-editor select{max-width:100%}

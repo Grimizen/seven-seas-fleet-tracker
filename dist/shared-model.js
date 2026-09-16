@@ -1,3 +1,4 @@
+import {validQuantity} from './cargo-data.js';
 import {sameWeight} from './load.js';
 import {apply,newShip} from './model.js';
 
@@ -7,17 +8,18 @@ export function packShip(ship) {
     config:{id:ship.id,name:ship.name,type:ship.type,maxHull:ship.maxHull,minCrew:ship.minCrew??5,maxCrew:ship.maxCrew??48,maxGuns:ship.maxGuns??9,archived:ship.archived===true,
       stationMax:Object.fromEntries(Object.entries(ship.stations).map(([k,v])=>[k,v.max])),
       ...(ship.maxLoad!==undefined?{maxLoad:ship.maxLoad}:{}),
+      ...(ship.capacityUnits!==undefined?{capacityUnits:ship.capacityUnits}:{}),
       ...(ship.armament?{armament:structuredClone(ship.armament)}:{}),
-      mounts:ship.guns.map(({id,name,side,gunType,slotId,cargoWeight})=>({id,name,side,...(gunType?{gunType}:{}),...(slotId?{slotId}:{}),...(cargoWeight!==undefined?{cargoWeight}:{})}))},
+      mounts:ship.guns.map(({id,name,side,gunType,slotId,cargoWeight,cargoUnits})=>({id,name,side,...(gunType?{gunType}:{}),...(slotId?{slotId}:{}),...(cargoWeight!==undefined?{cargoWeight}:{}),...(cargoUnits!==undefined?{cargoUnits}:{})}))},
     game:{hull:ship.hull,crew:ship.crew,crewLevel:ship.crewLevel,sails:ship.sails,sinking:ship.sinking,
       stations:Object.fromEntries(Object.entries(ship.stations).map(([k,v])=>[k,{hp:v.hp,assigned:v.assigned}])),
-      guns:ship.guns.map(({condition,loaded,assigned,loadedUnitWeight})=>({condition,loaded,assigned,...(loadedUnitWeight!==undefined?{loadedUnitWeight}:{})})),
+      guns:ship.guns.map(({condition,loaded,assigned,loadedUnitWeight,loadedCargo})=>({condition,loaded,assigned,...(loadedUnitWeight!==undefined?{loadedUnitWeight}:{}),...(loadedCargo!==undefined?{loadedCargo:structuredClone(loadedCargo)}:{})})),
       inventory:structuredClone(ship.inventory),officers:structuredClone(ship.officers)},revision:0
   };
 }
 export function unpackShip(doc) {
   const {config:c,game:g}=doc;
-  return {...structuredClone(g),id:c.id,name:c.name,type:c.type,maxHull:c.maxHull,minCrew:c.minCrew,maxCrew:c.maxCrew,maxGuns:c.maxGuns??9,archived:c.archived===true,...(c.maxLoad!==undefined?{maxLoad:c.maxLoad}:{}),...(c.armament?{armament:structuredClone(c.armament)}:{}),
+  return {...structuredClone(g),id:c.id,name:c.name,type:c.type,maxHull:c.maxHull,minCrew:c.minCrew,maxCrew:c.maxCrew,maxGuns:c.maxGuns??9,archived:c.archived===true,...(c.maxLoad!==undefined?{maxLoad:c.maxLoad}:{}),...(c.capacityUnits!==undefined?{capacityUnits:c.capacityUnits}:{}),...(c.armament?{armament:structuredClone(c.armament)}:{}),
     stations:Object.fromEntries(Object.entries(g.stations).map(([k,v])=>[k,{...v,max:c.stationMax[k]}])),
     guns:g.guns.map((v,i)=>({...v,...c.mounts[i]}))};
 }
@@ -27,15 +29,15 @@ export function changeShip(doc,action,expected) {
   const key=action.type==='crew'?'crew':action.type==='sails'?'sails':['sinking','end-sinking'].includes(action.type)?'sinking':null;
   const value=key?current[key]:action.type==='officer'?current.officers[action.id]:
     action.type==='assign'?(current.guns.find(g=>g.id===action.id)||current.stations[action.id])?.assigned:
-    action.type==='edit-item'?current.inventory.find(i=>i.id===action.id):action.type==='loaded-weight'?((g)=>({loaded:g?.loaded,weight:g?.loadedUnitWeight??null}))(current.guns.find(g=>g.id===action.id)):action.type==='gun-condition'?current.guns.find(g=>g.id===action.id)?.condition:undefined;
+    action.type==='edit-item'?current.inventory.find(i=>i.id===action.id):action.type==='loaded-weight'?((g)=>({loaded:g?.loaded,weight:g?.loadedUnitWeight??null,cargo:g?.loadedCargo??null}))(current.guns.find(g=>g.id===action.id)):action.type==='gun-condition'?current.guns.find(g=>g.id===action.id)?.condition:undefined;
   if(expected!==undefined && !equal(value,expected))throw Error('Another player changed this value. Review the latest value and try again.');
   return {...doc,game:packShip(apply(current,action)).game,revision:doc.revision+1};
 }
 export function transferCargo(from,to,id,amount,newId) {
-  if(!Number.isInteger(amount)||amount<1)throw Error('Enter a positive whole quantity.');
+  if(!Number.isFinite(amount)||amount<=0)throw Error('Enter a positive quantity.');
   const a=structuredClone(from),b=structuredClone(to),item=a.game.inventory.find(i=>i.id===id);
-  if(!item||item.quantity<amount)throw Error('There is not enough stock to transfer.');
-  item.quantity-=amount;if(item.quantity===0)a.game.inventory=a.game.inventory.filter(i=>i.id!==id);
+  if(!item||!validQuantity(item,amount)||item.quantity<amount)throw Error('There is not enough stock to transfer.');
+  item.quantity=Math.max(0,Number((item.quantity-amount).toPrecision(15)));if(item.quantity===0)a.game.inventory=a.game.inventory.filter(i=>i.id!==id);
   const match=b.game.inventory.find(i=>i.name===item.name&&i.category===item.category&&sameWeight(i,item));
   if(match)match.quantity+=amount;else b.game.inventory.push({...item,id:newId,quantity:amount});
   a.revision++;b.revision++;return [a,b];

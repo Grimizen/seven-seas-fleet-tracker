@@ -1,5 +1,13 @@
 # Change queue
 
+## Completed in the cargo-unit batch (16 September 2026)
+
+- GM cargo-unit gun formulas and Sloop capacities of 50/100/150.
+- Catalogue for guns, ammunition, supplies and trade goods, with rarity, reference values and treasure ranges.
+- Fractional bulk cargo, personal-equipment exclusion, rarity filter and value-per-CU sorting.
+- Explicit review of legacy pounds and loaded rounds; metadata preserved through transfer, reload, gun removal and undo.
+- Updated GM register: confirmed PDF rules supersede the old poundage placeholder; remaining interpretations keep stable IDs.
+
 ## Completed in the load, casualties and sound batch (15 September 2026)
 
 - Direct crew casualties from explicitly chosen assignments, with consistent totals and undo.

@@ -30,7 +30,13 @@ Use **Manage fleet** for automatically synced group templates, including edit/re
 
 ### Load, casualties and sounds
 
-All load controls use pounds. Guns default to their calibre poundage as a **provisional game weight**, with an owner/GM override in Guns. Cargo requires a unit weight when added and can be edited afterwards. Maximum load is editable per vessel and saved template in Manage fleet; it starts unknown. Stored cargo/equipment, installed guns and loaded ammunition count toward load. Missing legacy weights are shown as unknown; overload warns without blocking actions. Reloading and returning loaded rounds preserve their weights, and different-weight cargo rows never merge.
+All vessel load controls use **cargo units (CU)** from the GM's Cargo.pdf. Swivels use 1 CU; long guns, carronades and howitzers use poundage multiplied by 1, 0.75 and 1.5 respectively. Sloop capacities are 50/100/150 CU. Owner/GM overrides remain available.
+
+In Cargo, add from the GM catalogue or create a custom item. Catalogue choices fill in CU usage, rarity and retail-reference prices; bulk goods are measured and priced per CU, while rounds and individual supplies use item counts. Fractional bulk quantities are supported. Personal equipment can be marked excluded from vessel load. Rarity filtering and value-per-CU sorting help compare loot. Reference prices are not sale proceeds; treasure ranges are retained.
+
+**Reviewing older data:** old pound fields remain untouched. Cargo with no CU value is marked for review: open Edit / classify cargo, choose the correct catalogue entry or custom CU value, verify quantity and save. Review loaded rounds separately in Guns. An old gun pound override remains unknown until the GM saves a CU override (blank restores the GM formula). An old vessel capacity in pounds requires confirmation in Manage fleet; otherwise matching Sloop classes use the confirmed default. Group template pound capacities are likewise not converted silently. No startup migration writes occur.
+
+Cargo-unit and price metadata are preserved by reloads, transfers, gun moves/removal and undo. Compatibility by ammunition size is still a GM check. Occupied equipment is counted once: stored rounds become loaded rounds when reloaded. Loadout configuration does not consume spare cannons from inventory.
 
 Crew and Ship controls record direct casualties from explicitly selected unassigned sailors, station assignments or gun teams. Crew total and allocations change together; officers and HP are unaffected. Undo is available. After hull recovery, **End sinking** clears the countdown explicitly when the table agrees.
 

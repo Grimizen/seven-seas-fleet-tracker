@@ -1,3 +1,4 @@
+import {cargoDetails,sameCargo} from './cargo-data.js';
 export const families=['Long Gun','Carronade','Howitzer','Swivel Gun'];
 export const sides=['Port','Starboard','Bow','Stern'];
 export const catalogue=[
@@ -17,7 +18,7 @@ export function armamentFor(s){
   return a;
 }
 export function normalizeGuns(guns){const counts={Port:0,Starboard:0,Bow:0,Stern:0};return guns.map(g=>{counts[g.side]++;return {...g,gunType:g.gunType??'long-9',slotId:g.slotId??`${g.side.toLowerCase()}-${counts[g.side]}`};});}
-export const loadoutSignature=s=>JSON.stringify({armament:[...sides.map(side=>armamentFor(s).layout[side]),[...armamentFor(s).broadsideTypes].sort(),[...armamentFor(s).chaseTypes].sort()],guns:normalizeGuns(s.guns).map(g=>[g.id,g.slotId,g.gunType,g.cargoWeight??null]).sort((a,b)=>a[0].localeCompare(b[0]))});
+export const loadoutSignature=s=>JSON.stringify({armament:[...sides.map(side=>armamentFor(s).layout[side]),[...armamentFor(s).broadsideTypes].sort(),[...armamentFor(s).chaseTypes].sort()],guns:normalizeGuns(s.guns).map(g=>[g.id,g.slotId,g.gunType,g.cargoWeight??null,g.cargoUnits??null,Object.hasOwn(g,'cargoUnits')]).sort((a,b)=>a[0].localeCompare(b[0]))});
 export function slotsFor(s){const a=armamentFor(s),guns=normalizeGuns(s.guns);return sides.flatMap(side=>Array.from({length:a.layout[side]},(_,i)=>{const id=`${side.toLowerCase()}-${i+1}`;return {id,side,name:`${side}${['Bow','Stern'].includes(side)?' chase':''} ${i+1}`,gun:guns.find(g=>g.slotId===id)};}));}
 export const allowedTypes=(a,side)=>a[['Bow','Stern'].includes(side)?'chaseTypes':'broadsideTypes'];
 export function validateArmament(a,max,guns=[]){
@@ -38,7 +39,7 @@ export function refit(ship,slotId,type){
   if(!slot||type&&!spec)throw Error('Choose an existing slot and cannon.');
   if(spec&&!allowedTypes(s.armament,slot.side).includes(spec.family))throw Error('This gun family is not permitted in that slot.');
   if(slot.gun?.gunType===type)return s;
-  if(slot.gun?.loaded){const name=slot.gun.loaded,item=s.inventory.find(i=>i.category==='Ammunition'&&i.name===name&&(i.unitWeight??null)===(slot.gun.loadedUnitWeight??null));if(item)item.quantity++;else s.inventory.push({id:crypto.randomUUID(),name,category:'Ammunition',quantity:1,unitWeight:slot.gun.loadedUnitWeight??null});}
+  if(slot.gun?.loaded){const round={name:slot.gun.loaded,category:'Ammunition',...cargoDetails(slot.gun.loadedCargo??{}),...(slot.gun.loadedUnitWeight!=null?{unitWeight:slot.gun.loadedUnitWeight}:{})},item=s.inventory.find(i=>i.category==='Ammunition'&&i.name===round.name&&sameCargo(i,round));if(item)item.quantity++;else s.inventory.push({id:crypto.randomUUID(),...round,quantity:1});}
   s.guns=s.guns.filter(g=>g.slotId!==slotId);
   if(spec)s.guns.push({id:crypto.randomUUID(),slotId,side:slot.side,name:slot.name,gunType:spec.id,condition:'operational',loaded:null,assigned:0});
   return s;
@@ -49,5 +50,5 @@ export function moveGun(ship,source,destination){
   if(!allowedTypes(armamentFor(s),to.side).includes(gunSpec(from.gun).family))throw Error('This cannon is not allowed in the destination slot.');
   const g=s.guns.find(g=>g.id===from.gun.id);g.slotId=to.id;g.side=to.side;g.name=to.name;return s;
 }
-export function ammoAllowed(g,item){return item.category==='Ammunition'&&(gunSpec(g)?.family!=='Swivel Gun'||/\blead\s+shot\b/i.test(item.name));}
+export function ammoAllowed(g,item){return item.category==='Ammunition'&&(gunSpec(g)?.family!=='Swivel Gun'||(item.shotType==='lead'||/\b(lead|swivel)\s+shot\b/i.test(item.name)));}
 export function shotNotes(name){if(/chain\s+shot/i.test(name??''))return 'Chain: double damage to masts.';if(/(grape|fire)\s+shot/i.test(name??''))return 'Half range and ship damage; additional 5× damage to crew.'+(/fire/i.test(name)?' Fire: critical failure on 1–2; critical hits start fires (Light d4 / Mid 2d4 / Heavy 3d4 / S. Heavy 4d4).':'');return '';}

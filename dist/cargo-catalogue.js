@@ -1,0 +1,19 @@
+import {catalogue as guns} from './weapons.js';
+export const gunUnits=spec=>spec.family==='Swivel Gun'?1:spec.poundage*({'Long Gun':1,Carronade:.75,Howitzer:1.5}[spec.family]);
+const gunRarity=g=>g.family==='Swivel Gun'?'Common':g.family==='Long Gun'?(g.poundage<=18?'Common':g.poundage<=36?'Uncommon':'Rare'):g.family==='Carronade'?(g.poundage<=18?'Common':g.poundage<=36?'Uncommon':'Rare'):(g.poundage<=24?'Uncommon':'Rare');
+const item=(id,name,category,cargoUnits,marketValue=null,rarity=null,extra={})=>({id,name,category,cargoUnits,quantityUnit:'item',marketValue,marketValueMax:null,rarity,ammoSize:null,shotType:null,...extra});
+const sizes=['light','mid','heavy','super-heavy'],perUnit=[16,8,4,2];
+export const cargoCatalogue=[
+  ...guns.map(g=>item('gun-'+g.id,g.name,'Equipment',gunUnits(g),g.cost,gunRarity(g))),
+  item('shot-swivel','Swivel shot','Ammunition',1/35,.5,'Common',{ammoSize:'swivel',shotType:'lead',rate:'35 rounds per cargo unit'}),
+  ...[['lead',[4,10,24,40]],['chain',[5,12,28,45]],['grape',[5,12,28,45]],['fire',[6,15,32,50]]].flatMap(([kind,values])=>sizes.map((size,i)=>item('shot-'+kind+'-'+size,kind[0].toUpperCase()+kind.slice(1)+' shot - '+size,'Ammunition',1/perUnit[i],values[i],i<2?'Common':i===2?'Uncommon':'Rare',{ammoSize:size,shotType:kind,rate:perUnit[i]+' rounds per cargo unit'}))),
+  ...[['small-arms','Small arms','Equipment',40],['armour','Armour','Equipment',20],['fabrics','Fabric pieces','Trade Goods',50],['leather-pieces','Leather pieces','Trade Goods',50],['lumber-pieces','Lumber pieces','Repair',10],['stone-pieces','Stone pieces','Trade Goods',5],['metal-pieces','Metal pieces','Trade Goods',5],['rations','Daily rations','Rations',30],['food-items','Bulk food portions','Rations',100],['liquid-items','Bulk liquid measures','Rations',50]].map(([id,name,cat,count])=>item(id,name,cat,1/count,id==='rations'?2/30:null,id==='rations'?'Common':null,{rate:count+' items per cargo unit'})),
+  ...[
+    ['wool','Wool',10,'Common'],['cotton','Cotton',25,'Common'],['leather','Leather',1,'Common'],['stone','Stone (processed)',2,'Common'],['silver-ore','Ore (silver)',2.5,'Common'],['gold-ore','Ore (gold)',25,'Common'],['iron','Iron',5,'Common'],['copper','Copper',25,'Common'],['tin','Tin',15,'Common'],['bronze','Bronze',20,'Common'],['steel','Steel',20,'Common'],['food','Food (average)',1,'Common'],['drink','Drink (average)',1,'Common'],['ration-bulk','Rations (bulk)',2,'Common'],['treasure-common','Misc. treasures (common)',50,'Common',250],
+    ['linen','Linen',125,'Uncommon'],['lumber-fine','Lumber (fine)',50,'Uncommon'],['stone-fine','Stone (fine)',150,'Uncommon'],['silver','Silver',250,'Uncommon'],['gold','Gold',2500,'Uncommon'],['velvet','Velvet',1000,'Uncommon'],['food-fine','Food (fine)',100,'Uncommon'],['drink-fine','Drink (fine)',100,'Uncommon'],['treasure-uncommon','Misc. treasures (uncommon)',1000,'Uncommon',10000],
+    ['spices','Spices',5000,'Rare'],['silk','Silk',2500,'Rare'],['platinum','Platinum',25000,'Rare'],['mithril','Mithril',25000,'Rare'],['magic-stones','Magic stones',5000,'Rare',50000],['treasure-rare','Misc. treasures (rare)',25000,'Rare',100000]
+  ].map(([id,name,value,rarity,max=null])=>item('bulk-'+id,name,'Trade Goods',1,value,rarity,{quantityUnit:'cargo unit',marketValueMax:max,rate:'Quantity measured directly in cargo units'}))
+];
+export const catalogueItem=id=>cargoCatalogue.find(v=>v.id===id);
+export const fromCatalogue=id=>{const entry=catalogueItem(id);if(!entry)throw Error('Choose an available catalogue entry.');const {id:catalogId,rate,...data}=entry;return {...data,catalogId};};
+export const marketText=(item,quantity=1)=>item.marketValue==null?'Market value unknown':`${(item.marketValue*quantity).toLocaleString(undefined,{maximumFractionDigits:2})}${item.marketValueMax!=null?'–'+(item.marketValueMax*quantity).toLocaleString(undefined,{maximumFractionDigits:2}):''} gp`;
