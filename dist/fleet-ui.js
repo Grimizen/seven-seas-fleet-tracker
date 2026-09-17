@@ -1,11 +1,12 @@
+import {compareText,namedOrder} from './ui-order.js';
 import {capacity,legacyNote,sloopCapacity} from './load.js';
 import {templates,templateKey} from './templates.js';
 import {stationDefaults} from './model.js';
 import {armamentFor} from './weapons.js';
 import {armamentFields} from './weapons-ui.js';
 
-export function templateOptions(custom,escape,selected='sloop-large'){return [...templates,...custom].map(t=>`<option value="${escape(templateKey(t))}" ${templateKey(t)===selected?'selected':''}>${escape(t.type)}${custom.includes(t)?' · Group':''}</option>`).join('');}
-export function templateList(custom,escape){return custom.length?custom.map(t=>`<div class="template-row"><div><strong>${escape(t.type)}</strong><p class="subtle">Hull ${t.maxHull} · crew ${t.minCrew}–${t.maxCrew} · ${t.maxGuns} slots</p></div><button data-edit-template="${escape(templateKey(t))}">Edit</button><button class="danger" data-delete-template="${escape(templateKey(t))}">Delete…</button></div>`).join(''):'<p class="subtle">No saved group templates.</p>';}
+export function templateOptions(custom,escape,selected='sloop-large'){return [...templates,...custom].sort((a,b)=>compareText(a.type,b.type)||compareText(templateKey(a),templateKey(b))).map(t=>`<option value="${escape(templateKey(t))}" ${templateKey(t)===selected?'selected':''}>${escape(t.type)}${custom.includes(t)?' · Group':''}</option>`).join('');}
+export function templateList(custom,escape){return custom.length?[...custom].sort((a,b)=>compareText(a.type,b.type)||compareText(templateKey(a),templateKey(b))).map(t=>`<div class="template-row"><div><strong>${escape(t.type)}</strong><p class="subtle">Hull ${t.maxHull} · crew ${t.minCrew}–${t.maxCrew} · ${t.maxGuns} slots</p></div><button data-edit-template="${escape(templateKey(t))}">Edit</button><button class="danger" data-delete-template="${escape(templateKey(t))}">Delete…</button></div>`).join(''):'<p class="subtle">No saved group templates.</p>';}
 export function fleetControls(s,archived,custom,escape){
   const t=s?{...s,stationMax:Object.fromEntries(Object.entries(s.stations).map(([k,v])=>[k,v.max]))}:templates[2];
   return `<h2>Manage fleet</h2><p><a href="https://github.com/Grimizen/seven-seas-fleet-tracker/blob/main/GM-ASSUMPTIONS.md" target="_blank" rel="noopener">GM rules and assumptions to review</a></p><div class="card stack"><h3>Add vessel</h3><label>New vessel name<input id="new-name" maxlength="60" placeholder="Vessel name"></label><label>New vessel class<select id="new-class">${templateOptions(custom,escape)}</select></label><button id="new-ship" class="primary">Add vessel</button><p class="subtle" id="templates-status">Group templates load automatically and stay in sync.</p><p class="subtle">Starts at full HP, with up to 16 crew and four loaded 9lb long guns in available broadside slots, limited by class settings. 30 total lead rounds. Edit the loadout in Guns.</p></div>
@@ -18,5 +19,5 @@ export function fleetControls(s,archived,custom,escape){
   ${armamentFields(armamentFor(t),'class-mount')}
   <p class="subtle">Applying a class preserves missing HP and destroyed sections. Crew, cargo and guns stay aboard; occupied-slot conflicts must be resolved first. Movement remains the Sloop defaults pending GM rules.</p>
   <div class="actions">${s?'<button type="submit" class="primary">Apply class to this vessel…</button>':''}<button type="button" id="save-template">Save as new group template</button><button type="button" id="cancel-template-edit" hidden>Cancel template edit</button></div></form></div>
-  <div class="card stack"><h3>Archived vessels (${archived.length})</h3>${archived.length?archived.map(v=>`<div class="actions"><span>${escape(v.name)} · ${escape(v.type)}</span><button data-restore="${escape(v.id)}">Restore</button></div>`).join(''):'<p class="subtle">No archived vessels.</p>'}</div>`;
+  <div class="card stack"><h3>Archived vessels (${archived.length})</h3>${archived.length?namedOrder(archived).map(v=>`<div class="actions"><span>${escape(v.name)} · ${escape(v.type)}</span><button data-restore="${escape(v.id)}">Restore</button></div>`).join(''):'<p class="subtle">No archived vessels.</p>'}</div>`;
 }

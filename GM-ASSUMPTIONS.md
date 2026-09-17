@@ -91,3 +91,5 @@ Large Sloop section HP: Bridge 5, Rudder 3, Mast 5, Gun Deck 8, Powder Dock 3, A
 
 - Cargo-unit migration is additive: `capacityUnits`, `cargoUnits` and `loadedCargo` are separate from historical pound fields. Classifying an entry preserves its quantity and legacy values; changing quantity basis requires explicit review. No startup writes, inventory resets or ownership changes occur.
 - Cargo catalogue choices copy editable snapshots into items. Transfers and returning loaded rounds retain their cargo-unit, rarity and retail-value metadata and do not merge unlike entries. Installed guns and spare guns in cargo remain distinct; administrative loadout changes do not consume cargo stock.
+
+- Broadside buttons group existing fire/reload actions, without granting extra actions or bypassing the uninterrupted reload turn. Port/starboard only; bow/stern chase guns remain individual. Batch reload uses one selected ammunition entry and skips incompatible/loaded/disabled guns, with no partial reload on insufficient stock. Calibre and staffing remain table checks; this convenience does not introduce new combat rulings.

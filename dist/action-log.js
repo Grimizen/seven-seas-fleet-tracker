@@ -1,3 +1,4 @@
+import {slotsFor} from './weapons.js';
 import {crewTargets} from './crew.js';
 import {normalizeGuns} from './weapons.js';
 export const assignmentName=(s,id)=>normalizeGuns(s.guns).find(g=>g.id===id)?.name??id;
@@ -6,6 +7,7 @@ export function actionMessage(s,a,fallback){
   let text;
   if(a.type==='assign')text=`${label}: assigned crew ${a.amount}`;
   if(a.type==='gun-condition')text=`${label}: condition changed to ${a.value}`;
+  if(a.type==='broadside-fire'||a.type==='broadside-reload'){const names=slotsFor(s).filter(v=>a.ids.includes(v.gun?.id)).map(v=>v.name);text=`${a.type==='broadside-fire'?'Fired':'Reloaded'} ${a.side.toLowerCase()} broadside (${names.length} guns): ${names.join(', ')}${a.type==='broadside-reload'?' with '+(s.inventory.find(i=>i.id===a.ammo)?.name??'ammunition'):''}`;}
   if(a.type==='fire')text=`Fired ${label}`;
   if(a.type==='reload')text=`Reloaded ${label}`;
   if(a.type==='loaded-weight')text=`${label}: classified loaded round as ${a.cargo.name}, ${a.cargo.cargoUnits===null?'unknown cargo units':a.cargo.cargoUnits+' CU'}`;

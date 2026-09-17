@@ -43,3 +43,12 @@ Crew and Ship controls record direct casualties from explicitly selected unassig
 **Sound** in the header controls per-device mute and volume. Successful local fire, sail changes, damage and casualty actions play short effects; remote changes, failures, repairs and undo do not. Nine MP3 clips (~190 KB total) are trimmed from the eight owner-supplied sources. Source filenames and edits are retained in `dist/audio/credits.json`; `tools/prepare_audio.py` reproduces them using Python, NumPy and FFmpeg. Originals are unchanged.
 
 This batch uses the existing Firestore rules and membership documents; no ownership reset or data migration is needed.
+
+
+### Broadsides and UI ordering
+
+In Guns, **Fire port/starboard broadside** fires every ready gun on that side. **Reload port/starboard broadside** uses the chosen ammunition for empty operational guns that can accept it, after the uninterrupted reload turn. The preview lists affected slots and rounds required. Unavailable guns are skipped; insufficient stock rejects the whole reload. Each batch is a single transaction, log entry and undo step. A changed gun or selected ammo record rejects an out-of-date preview. Existing calibre/crew rulings remain table checks.
+
+Broadside audio layers the two owner-supplied cannon clips 140 ms apart, with gain reduced to limit the combined level. Up to eight voices represent a large volley; one eligible gun produces one shot. It respects local mute/volume and plays only after successful local fire. Preview it in Sound.
+
+**UI convention for future changes:** every rendered list needs an explicit, deterministic order and an ID tie-breaker for equal names. Named entities use English natural alphabetical ordering; gun slots use Port/Starboard/Bow/Stern then slot number; sections and rule-defined choices keep their fixed semantic order. Cargo preserves the user's selected sort, with name/ID tie-breakers; activity remains newest-first. Sort display copies, never the paired stored gun configuration/game arrays. Renames and explicit quantity/value sorts may intentionally change positions.

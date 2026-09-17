@@ -1,7 +1,7 @@
-import {normalizeGuns} from './weapons.js';
+import {slotsFor} from './weapons.js';
 export function crewTargets(s){
   const assigned=Object.values(s.stations).reduce((n,v)=>n+v.assigned,0)+s.guns.reduce((n,g)=>n+g.assigned,0);
-  return [{id:'unassigned',name:'Unassigned general crew',count:s.crew-assigned},...Object.entries(s.stations).sort(([a],[b])=>a.localeCompare(b)).map(([name,v])=>({id:'station:'+name,name:name+' assigned crew',count:v.assigned})),...normalizeGuns(s.guns).map(g=>({id:'gun:'+g.id,name:g.name+' gun crew',count:g.assigned}))];
+  return [{id:'unassigned',name:'Unassigned general crew',count:s.crew-assigned},...Object.entries(s.stations).sort(([a],[b])=>a.localeCompare(b)).map(([name,v])=>({id:'station:'+name,name:name+' assigned crew',count:v.assigned})),...slotsFor(s).filter(v=>v.gun).map(({gun:g,name})=>({id:'gun:'+g.id,name:name+' gun crew',count:g.assigned}))];
 }
 export function loseCrew(ship,losses){
   const s=structuredClone(ship),targets=crewTargets(s),seen=new Set();let total=0;

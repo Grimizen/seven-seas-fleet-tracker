@@ -17,6 +17,13 @@
 - Class-change logs name the vessel and old/new class.
 - Gun assignment, condition, weight and loadout logs use visible slot names.
 
+## Completed in the broadside and ordering batch (17 September 2026)
+
+- Port/starboard batch fire and reload, with eligible-slot previews, atomic ammunition use, stale-state checks, descriptive logs and one-step undo.
+- Broadside volley sound assembled at playback from the two supplied cannon clips; local mute/volume and preview retained.
+- Officer roles alphabetical; deterministic vessel, template, cargo/category/ammunition and gun-crew ordering, with named-list tie-breakers. Future UI ordering convention documented in README.
+- Personal-equipment checkbox aligned with its label in cargo add/edit forms; sound checkbox uses the same layout.
+
 ## Pending implementation
 
 No minor changes currently queued.

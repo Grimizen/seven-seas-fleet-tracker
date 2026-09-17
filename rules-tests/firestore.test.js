@@ -1,3 +1,4 @@
+import {broadsidePlan,broadsideSnapshot} from '../dist/broadside.js';
 import {refit} from '../dist/weapons.js';
 import {fromCatalogue} from '../dist/cargo-catalogue.js';
 import {readFile} from 'node:fs/promises';
@@ -137,4 +138,22 @@ test('players may classify legacy cargo and transfer fractional bulk with catalo
   const saved=(await getDoc(ar)).data().game.inventory,received=(await getDoc(br)).data().game.inventory;
   if(saved.find(v=>v.id==='silk').quantity!==1.75||received.find(v=>v.id==='moved').marketValue!==2500||saved.find(v=>v.id==='legacy').unitWeight!==9)throw Error('Cargo data was lost');
   await assertFails(updateDoc(ar,{'config.capacityUnits':999}));
+});
+
+
+test('players can fire and reload a broadside in atomic transactions without configuration changes',async()=>{
+  const id='broadside-test',fresh=defaultSharedShip();fresh.config.id=id;
+  await assertSucceeds(setDoc(doc(dbFor('gm'),base,'ships',id),fresh));
+  const db=dbFor('player'),ref=doc(db,base,'ships',id);
+  for(const mode of ['fire','reload']){
+    await assertSucceeds(runTransaction(db,async tx=>{
+      const before=(await tx.get(ref)).data(),s=unpackShip(before);
+      const a={type:'broadside-'+mode,side:'Port',ammo:'lead',ids:broadsidePlan(s,'Port',mode,'lead').targets.map(v=>v.gun.id)};
+      const after=changeShip(before,a,broadsideSnapshot(s,a));
+      tx.set(ref,after);tx.set(doc(db,base,'activity','batch-'+mode),{actor:'player',text:'Port broadside '+mode,at:serverTimestamp()});
+    }));
+  }
+  const result=(await getDoc(ref)).data();
+  if(result.game.inventory[0].quantity!==24||!result.game.guns[0].loaded||result.revision!==2)throw Error('Batch state did not persist.');
+  await assertFails(updateDoc(ref,{'config.name':'Not allowed'}));
 });

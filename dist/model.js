@@ -1,3 +1,4 @@
+import {broadsidePlan} from './broadside.js';
 import {cargoDetails,validateCargo,validQuantity} from './cargo-data.js';
 import {weight} from './load.js';
 import {loseCrew} from './crew.js';
@@ -11,6 +12,13 @@ export function assigned(ship){return Object.values(ship.stations).reduce((n,s)=
 export function apply(ship,action){const s=structuredClone(ship);const g=s.guns.find(g=>g.id===action.id);const n=Number(action.amount);switch(action.type){
 case 'sails': if(![0,1,2].includes(n))throw Error('Choose a sail state.');s.sails=n;break;
 case 'hp': {if(!Number.isInteger(n))throw Error('Enter a whole HP amount.');if(action.id==='Hull'){s.hull=Math.max(0,Math.min(s.maxHull,s.hull+n));}else {const st=s.stations[action.id];if(!st)throw Error('Unknown section.');st.hp=Math.max(0,Math.min(st.max,st.hp+n));}break;}
+case 'broadside-fire':case 'broadside-reload': {
+ const mode=action.type==='broadside-fire'?'fire':'reload',plan=broadsidePlan(s,action.side,mode,action.ammo);
+ if(plan.reason)throw Error(plan.reason);
+ const ids=plan.targets.map(v=>v.gun.id);
+ if(!Array.isArray(action.ids)||action.ids.length!==ids.length||ids.some((id,i)=>id!==action.ids[i]))throw Error('The broadside changed. Review the latest guns and try again.');
+ let result=s;for(const id of ids)result=apply(result,{type:mode,id,ammo:action.ammo});return result;
+}
 case 'fire': if(!g||g.condition!=='operational'||!g.loaded)throw Error('This cannon is not ready.');if(s.stations['Gun Deck'].hp===0)throw Error('The gun deck is destroyed.');g.loaded=null;g.loadedUnitWeight=null;g.loadedCargo=null;break;
 case 'reload': {if(!g||g.condition!=='operational'||g.loaded)throw Error('This cannon cannot reload.');if(!s.stations['Powder Dock'].hp||!s.stations['Gun Deck'].hp)throw Error('Restore the gun deck and powder dock before reloading.');const ammo=s.inventory.find(i=>i.id===action.ammo);if(!ammo||ammo.category!=='Ammunition'||ammo.quantity<1)throw Error('No ammunition available.');if(!ammoAllowed(g,ammo))throw Error('Swivel guns may only load lead shot.');ammo.quantity--;g.loaded=ammo.name;g.loadedUnitWeight=ammo.unitWeight??null;g.loadedCargo=cargoDetails(ammo);break;}
 case 'gun-condition':if(!g||!['operational','disabled','destroyed'].includes(action.value))throw Error('Invalid cannon condition.');g.condition=action.value;break;
