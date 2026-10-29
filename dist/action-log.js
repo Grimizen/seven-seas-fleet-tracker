@@ -1,4 +1,4 @@
-import {provisionMessage} from './provisions.js';
+import {provisionMessage} from './provisions.js?v=officer-occupancy-2';
 import {slotsFor} from './weapons.js';
 import {crewTargets} from './crew.js';
 import {normalizeGuns} from './weapons.js';

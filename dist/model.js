@@ -1,4 +1,4 @@
-import {useProvisions} from './provisions.js';
+import {useProvisions} from './provisions.js?v=officer-occupancy-2';
 import {broadsidePlan} from './broadside.js';
 import {cargoDetails,validateCargo,validQuantity} from './cargo-data.js';
 import {weight} from './load.js';

@@ -52,3 +52,6 @@ No minor changes currently queued.
 
 - See A01–A25 and the open questions in GM-ASSUMPTIONS.md. No guessed rulings are treated as approved.
 - Detailed ammunition calibre compatibility and spare-cannon purchasing/storage remain unmodelled (A15–A16).
+
+
+Officer occupancy (29 October 2026): Crew now has a Filled checkbox per role. Existing names count automatically; unnamed filled roles persist as "Assigned (unnamed)" in the existing officer map. Clearing a checkbox vacates the role. Each filled slot adds one daily ration consumer, dynamically; exemptions remain adjustable.

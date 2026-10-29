@@ -1,4 +1,4 @@
-import {provisionSnapshot} from './provisions.js';
+import {provisionSnapshot} from './provisions.js?v=officer-occupancy-2';
 import {isBroadside,broadsideSnapshot} from './broadside.js';
 import {validQuantity} from './cargo-data.js';
 import {sameWeight} from './load.js';

@@ -61,3 +61,15 @@ test('stale crew or ration edits are rejected, including a concurrent daily dedu
   assert.throws(()=>changeShip(changeShip(before,{type:'crew',amount:21}),action,expected),/Another player/);
   const hull=changeShip(before,{type:'hp',id:'Hull',amount:-1});assert.equal(changeShip(hull,action,expected).game.hull,19);
 });
+
+ test('officer occupancy follows saved assignments, clearing, renaming and reload',()=>{
+ let doc=packShip(vessel());
+ for(const role of ['Captain','Cook','Gunner'])doc=changeShip(doc,{type:'officer',id:role,value:'Assigned (unnamed)'});
+ assert.equal(filledOfficerCount(doc.game),3);
+ doc=changeShip(doc,{type:'officer',id:'Captain',value:'Ada'});
+ assert.equal(filledOfficerCount(doc.game),3);
+ doc=changeShip(doc,{type:'officer',id:'Cook',value:''});
+ const reloaded=JSON.parse(JSON.stringify(doc));
+ assert.equal(filledOfficerCount(reloaded.game),2);
+ assert.equal(provisionPlan({...vessel(),...reloaded.game}, {...action,caught:0}).rations,23);
+ });
