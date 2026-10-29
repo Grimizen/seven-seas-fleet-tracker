@@ -1,3 +1,4 @@
+import {useProvisions} from './provisions.js';
 import {broadsidePlan} from './broadside.js';
 import {cargoDetails,validateCargo,validQuantity} from './cargo-data.js';
 import {weight} from './load.js';
@@ -10,6 +11,7 @@ export function newShip(id='sea-wren',name='Sea Wren'){return {id,name,type:'Lar
 export function initialState(){return {version:1,selected:'sea-wren',ships:[newShip()],log:[]};}
 export function assigned(ship){return Object.values(ship.stations).reduce((n,s)=>n+s.assigned,0)+ship.guns.reduce((n,g)=>n+g.assigned,0);}
 export function apply(ship,action){const s=structuredClone(ship);const g=s.guns.find(g=>g.id===action.id);const n=Number(action.amount);switch(action.type){
+case 'daily-rations':return useProvisions(s,action);
 case 'sails': if(![0,1,2].includes(n))throw Error('Choose a sail state.');s.sails=n;break;
 case 'hp': {if(!Number.isInteger(n))throw Error('Enter a whole HP amount.');if(action.id==='Hull'){s.hull=Math.max(0,Math.min(s.maxHull,s.hull+n));}else {const st=s.stations[action.id];if(!st)throw Error('Unknown section.');st.hp=Math.max(0,Math.min(st.max,st.hp+n));}break;}
 case 'broadside-fire':case 'broadside-reload': {

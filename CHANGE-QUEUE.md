@@ -24,6 +24,12 @@
 - Officer roles alphabetical; deterministic vessel, template, cargo/category/ammunition and gun-crew ordering, with named-list tie-breakers. Future UI ordering convention documented in README.
 - Personal-equipment checkbox aligned with its label in cargo add/edit forms; sound checkbox uses the same layout.
 
+## Completed in the daily provisions batch (29 October 2026)
+
+- Daily ration calculator with exempt crew, extra people, fishing offsets, stock preview, shared deduction, log and undo.
+- Add cargo moved above the manifest.
+- Back to top control for long pages, with keyboard focus and reduced-motion support.
+
 ## Pending implementation
 
 No minor changes currently queued.

@@ -52,3 +52,11 @@ In Guns, **Fire port/starboard broadside** fires every ready gun on that side. *
 Broadside audio layers the two owner-supplied cannon clips 140 ms apart, with gain reduced to limit the combined level. Up to eight voices represent a large volley; one eligible gun produces one shot. It respects local mute/volume and plays only after successful local fire. Preview it in Sound.
 
 **UI convention for future changes:** every rendered list needs an explicit, deterministic order and an ID tie-breaker for equal names. Named entities use English natural alphabetical ordering; gun slots use Port/Starboard/Bow/Stern then slot number; sections and rule-defined choices keep their fixed semantic order. Cargo preserves the user's selected sort, with name/ID tie-breakers; activity remains newest-first. Sort display copies, never the paired stored gun configuration/game arrays. Renames and explicit quantity/value sorts may intentionally change positions.
+
+### Daily provisions
+
+Cargo → Daily provisions calculates max(0, crew − exempt crew + extra people − catch) and deducts that many daily rations from one chosen stock after confirmation. Crew comes from the live vessel; the initial editable exemption is one. Extra people covers PCs/guests outside general crew. Catch is measured in ration equivalents. Individual Rations entries count as one ration each; catalogue Rations (bulk) uses 30 per CU. Generic food/liquid entries and personal cargo are excluded. Classify custom daily rations under Rations. Insufficient stock cancels the whole deduction; choose a sufficient stack or consolidate stores first. Surplus catch is not added automatically.
+
+This is an explicit in-game-day action, not a midnight timer. The optional day label appears in the log but does not enforce uniqueness: check with the group before applying a day. Crew exemptions, extra people and stock choice are remembered per vessel on this device; catch resets after success. All shared deductions use transactions, stale-state protection and existing Undo. No Firebase rules update or fleet reset is required.
+
+Add cargo is above the manifest. A Back to top button appears after scrolling, respects reduced motion and returns keyboard focus to the vessel selector.

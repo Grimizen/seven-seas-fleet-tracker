@@ -1,8 +1,10 @@
+import {provisionMessage} from './provisions.js';
 import {slotsFor} from './weapons.js';
 import {crewTargets} from './crew.js';
 import {normalizeGuns} from './weapons.js';
 export const assignmentName=(s,id)=>normalizeGuns(s.guns).find(g=>g.id===id)?.name??id;
 export function actionMessage(s,a,fallback){
+  if(a.type==='daily-rations')return provisionMessage(s,a);
   const label=assignmentName(s,a.id);
   let text;
   if(a.type==='assign')text=`${label}: assigned crew ${a.amount}`;

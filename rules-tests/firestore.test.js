@@ -1,3 +1,4 @@
+import {provisionSnapshot} from '../dist/provisions.js';
 import {broadsidePlan,broadsideSnapshot} from '../dist/broadside.js';
 import {refit} from '../dist/weapons.js';
 import {fromCatalogue} from '../dist/cargo-catalogue.js';
@@ -156,4 +157,18 @@ test('players can fire and reload a broadside in atomic transactions without con
   const result=(await getDoc(ref)).data();
   if(result.game.inventory[0].quantity!==24||!result.game.guns[0].loaded||result.revision!==2)throw Error('Batch state did not persist.');
   await assertFails(updateDoc(ref,{'config.name':'Not allowed'}));
+});
+
+
+test('player daily provisions deduct shared rations without altering configuration',async()=>{
+ const fresh=defaultSharedShip();fresh.config.id='provisions-test';fresh.game.crew=22;
+ fresh.game.inventory.push({id:'food',name:'Rations',category:'Rations',quantity:100,cargoUnits:1/30});
+ await assertSucceeds(setDoc(doc(dbFor('gm'),base,'ships','provisions-test'),fresh));
+ const player=dbFor('player'),ref=doc(player,base,'ships','provisions-test');
+ await assertSucceeds(runTransaction(player,async tx=>{
+  const before=(await tx.get(ref)).data(),a={type:'daily-rations',exempt:1,extra:0,caught:10,stock:'food'};
+  tx.set(ref,changeShip(before,a,provisionSnapshot(unpackShip(before),a)));
+ }));
+ const result=(await getDoc(ref)).data();if(result.game.inventory[1].quantity!==89||result.game.crew!==22)throw Error('Incorrect provisions deduction');
+ await assertFails(updateDoc(ref,{'config.name':'Not allowed'}));
 });

@@ -1,3 +1,4 @@
+import {provisionSnapshot} from './provisions.js';
 import {isBroadside,broadsideSnapshot} from './broadside.js';
 import {validQuantity} from './cargo-data.js';
 import {sameWeight} from './load.js';
@@ -28,7 +29,7 @@ export function changeShip(doc,action,expected) {
   // Absolute edits should never silently replace a newer value from another player.
   const current=unpackShip(doc);
   const key=action.type==='crew'?'crew':action.type==='sails'?'sails':['sinking','end-sinking'].includes(action.type)?'sinking':null;
-  const value=isBroadside(action)?broadsideSnapshot(current,action):key?current[key]:action.type==='officer'?current.officers[action.id]:
+  const value=action.type==='daily-rations'?provisionSnapshot(current,action):isBroadside(action)?broadsideSnapshot(current,action):key?current[key]:action.type==='officer'?current.officers[action.id]:
     action.type==='assign'?(current.guns.find(g=>g.id===action.id)||current.stations[action.id])?.assigned:
     action.type==='edit-item'?current.inventory.find(i=>i.id===action.id):action.type==='loaded-weight'?((g)=>({loaded:g?.loaded,weight:g?.loadedUnitWeight??null,cargo:g?.loadedCargo??null}))(current.guns.find(g=>g.id===action.id)):action.type==='gun-condition'?current.guns.find(g=>g.id===action.id)?.condition:undefined;
   if(expected!==undefined && !equal(value,expected))throw Error('Another player changed this value. Review the latest value and try again.');
