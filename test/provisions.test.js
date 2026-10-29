@@ -4,14 +4,40 @@ import {newShip,apply} from '../dist/model.js';
 import {provisionPlan,provisionSnapshot,rationRate} from '../dist/provisions.js';
 import {packShip,changeShip,changes,undoChanges} from '../dist/shared-model.js';
 import {actionMessage} from '../dist/action-log.js';
+import {filledOfficerCount,provisionsPanel} from '../dist/provisions.js';
 const vessel=()=>{const s=newShip();s.crew=22;s.inventory.push({id:'food',name:'Daily rations',category:'Rations',quantity:100,cargoUnits:1/30});return s;};
 const action={type:'daily-rations',exempt:1,extra:0,caught:10,stock:'food',day:'Voyage 7'};
+test('15 general crew and seven filled officer slots consume 21 rations after one exemption',()=>{
+  const s=vessel();s.crew=15;
+  Object.keys(s.officers).slice(0,7).forEach((role,i)=>s.officers[role]='Officer '+i);
+  const a={...action,caught:0},p=provisionPlan(s,a);
+  assert.equal(p.officers,7);assert.equal(p.people,21);assert.equal(p.rations,21);
+  assert.equal(apply(s,a).inventory[1].quantity,79);
+  assert.equal(provisionPlan(s,action).rations,11);
+  assert.match(provisionsPanel(s,x=>x),/15 general crew \+ 7 filled officer roles/);
+  assert.match(actionMessage(s,a),/15 general crew \+ 7 officers \+ 0 extra people − 1 exempt/);
+});
+test('officer slots ignore blank names, count each occupied slot and allow officer/guest exemptions',()=>{
+  const s=vessel();s.crew=0;s.officers={Captain:'Ada',Gunner:'Ada',Cook:'  ',Navigator:''};
+  assert.equal(filledOfficerCount(s),2);
+  assert.equal(provisionPlan(s,{...action,caught:0,exempt:2}).rations,0);
+  assert.equal(provisionPlan(s,{...action,caught:0,extra:1,exempt:3}).rations,0);
+  assert.throws(()=>provisionPlan(s,{...action,exempt:3}),/Non-consuming/);
+});
+test('changes to filled officer count reject a stale ration preview',()=>{
+  const s=vessel(),before=packShip(s),expected=provisionSnapshot(s,action);
+  const occupied=changeShip(before,{type:'officer',id:'Captain',value:'Ada'});
+  assert.throws(()=>changeShip(occupied,action,expected),/Another player/);
+  const latest=provisionSnapshot({...s,officers:{...s.officers,Captain:'Ada'}},action);
+  const renamed=changeShip(occupied,{type:'officer',id:'Captain',value:'Bea'});
+  assert.equal(changeShip(renamed,action,latest).game.inventory[1].quantity,88);
+});
 test('22 crew minus one exempt and ten fish uses eleven rations, with complete undo',()=>{
   const s=vessel(),before=packShip(s),after=changeShip(before,action,provisionSnapshot(s,action));
   assert.equal(provisionPlan(s,action).rations,11);assert.equal(after.game.inventory[1].quantity,89);
   assert.equal(s.inventory[1].quantity,100);assert.equal(after.game.crew,22);
   assert.deepEqual(after.config,before.config);assert.deepEqual(undoChanges(after.game,changes(before.game,after.game)),before.game);
-  assert.match(actionMessage(s,action),/22 crew − 1 exempt \+ 0 extra people − 10 catch = 11 stored rations used from Daily rations/);
+  assert.match(actionMessage(s,action),/22 general crew \+ 0 officers \+ 0 extra people − 1 exempt − 10 catch = 11 stored rations used from Daily rations/);
 });
 test('extra mouths, no catch, excess catch and zero crew are handled without adding food',()=>{
   const s=vessel();assert.equal(provisionPlan(s,{...action,extra:6,caught:0}).rations,27);

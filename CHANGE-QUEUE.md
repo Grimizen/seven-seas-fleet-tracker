@@ -30,6 +30,10 @@
 - Add cargo moved above the manifest.
 - Back to top control for long pages, with keyboard focus and reduced-motion support.
 
+## Officer provisions correction (29 October 2026)
+
+- Count each filled officer role in daily provisions, with a combined exemption allowance, explicit preview/log totals, and stale officer-count protection. Existing device-local adjustments are preserved; UI warns against including officers twice in Additional people.
+
 ## Pending implementation
 
 No minor changes currently queued.
